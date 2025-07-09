@@ -1,0 +1,21 @@
+{
+    "name": "soosuuke/ia_platform",
+    "description": "Backend PHP for IA service platform",
+    "type": "project",
+    "require": {
+        "vlucas/phpdotenv": "^5.6",
+        "symfony/var-dumper": "^7.3"
+    },
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Soosuuke\\IaPlatform\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Soosuuke",
+            "email": "soosuuke.dev@gmail.com"
+        }
+    ]
+}
