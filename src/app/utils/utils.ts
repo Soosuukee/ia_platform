@@ -18,13 +18,13 @@ type Metadata = {
   tag?: string;
   team: Team[];
   link?: string;
+  price?: string;
+  duration?: string;
 };
-
-import { notFound } from 'next/navigation';
 
 function getMDXFiles(dir: string) {
   if (!fs.existsSync(dir)) {
-    notFound();
+    return [];
   }
 
   return fs.readdirSync(dir).filter((file) => path.extname(file) === ".mdx");
@@ -32,7 +32,7 @@ function getMDXFiles(dir: string) {
 
 function readMDXFile(filePath: string) {
     if (!fs.existsSync(filePath)) {
-        notFound();
+        return { metadata: null, content: "" };
     }
 
   const rawContent = fs.readFileSync(filePath, "utf-8");
