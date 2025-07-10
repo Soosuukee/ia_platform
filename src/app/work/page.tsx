@@ -14,7 +14,7 @@ export async function generateMetadata() {
   });
 }
 
-export default function Work() {
+export default function WorkPage() {
   return (
     <Column maxWidth="m">
       <Schema
@@ -33,4 +33,4 @@ export default function Work() {
       <Projects />
     </Column>
   );
-}
+} 
