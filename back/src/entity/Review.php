@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Soosuuke\IaPlatform\Entity;
 
-use DateTime;
+use DateTimeImmutable;
 use Soosuuke\IaPlatform\Entity\User;
 use Soosuuke\IaPlatform\Entity\Provider;
 
@@ -15,7 +15,7 @@ class Review
     private Provider $provider;
     private string $content;
     private int $rating; // Note sur 5
-    private DateTime $createdAt;
+    private DateTimeImmutable $createdAt;
 
     public function __construct(User $user, Provider $provider, string $content, int $rating)
     {
@@ -23,7 +23,7 @@ class Review
         $this->provider = $provider;
         $this->content = $content;
         $this->rating = $rating;
-        $this->createdAt = new DateTime();
+        $this->createdAt = new DateTimeImmutable();
     }
 
     // Getters
@@ -52,7 +52,7 @@ class Review
         return $this->rating;
     }
 
-    public function getCreatedAt(): DateTime
+    public function getCreatedAt(): DateTimeImmutable
     {
         return $this->createdAt;
     }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Soosuuke\IaPlatform\Entity;
 
 class Skill
@@ -21,5 +23,11 @@ class Skill
     public function getName(): string
     {
         return $this->name;
+    }
+
+    // Setters
+    public function setName(string $name): void
+    {
+        $this->name = $name;
     }
 }

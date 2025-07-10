@@ -12,15 +12,16 @@ class User
     private int $id;
     private string $email;
     private string $password;
+    private string $country;
     private string $role; // "user" ou "client"
-    private \DateTimeImmutable $createdAt;
+    private DateTimeImmutable $createdAt;
 
-    public function __construct(string $email, string $password, string $role = 'user')
+    public function __construct(string $email, string $password, string $role = 'user', string $country = 'unknown')
     {
         $this->email = $email;
         $this->password = $password;
         $this->role = $role;
-        $this->createdAt = new \DateTimeImmutable();
+        $this->createdAt = new DateTimeImmutable();
     }
 
     // Getters
@@ -44,7 +45,7 @@ class User
         return $this->role;
     }
 
-    public function getCreatedAt(): \DateTimeImmutable
+    public function getCreatedAt(): DateTimeImmutable
     {
         return $this->createdAt;
     }
@@ -63,5 +64,15 @@ class User
     public function setRole(string $role): void
     {
         $this->role = $role;
+    }
+
+    public function getCountry(): string
+    {
+        return $this->country;
+    }
+
+    public function setCountry(string $country): void
+    {
+        $this->country = $country;
     }
 }

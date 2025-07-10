@@ -5,23 +5,27 @@ declare(strict_types=1);
 namespace Soosuuke\IaPlatform\Entity;
 
 use Soosuuke\IaPlatform\Entity\User;
+use Soosuuke\IaPlatform\Entity\AvailabilitySlot;
+use DateTimeImmutable;
 
 class Provider
 {
     private int $id;
     private User $user;
     private string $bio;
-    private string $availability;
-    private \DateTime $createdAt;
+    private DateTimeImmutable $createdAt;
 
-    public function __construct(User $user, string $bio, string $availability)
+    /**
+     * @var AvailabilitySlot[]
+     */
+    private array $availabilitySlots = [];
+
+    public function __construct(User $user, string $bio)
     {
         $this->user = $user;
         $this->bio = $bio;
-        $this->availability = $availability;
-        $this->createdAt = new \DateTime();
+        $this->createdAt = new DateTimeImmutable();
     }
-
 
     // Getters
     public function getId(): int
@@ -29,21 +33,27 @@ class Provider
         return $this->id;
     }
 
-
+    public function getUser(): User
+    {
+        return $this->user;
+    }
 
     public function getBio(): string
     {
         return $this->bio;
     }
 
-    public function getAvailability(): string
-    {
-        return $this->availability;
-    }
-
-    public function getCreatedAt(): \DateTime
+    public function getCreatedAt(): DateTimeImmutable
     {
         return $this->createdAt;
+    }
+
+    /**
+     * @return AvailabilitySlot[]
+     */
+    public function getAvailabilitySlots(): array
+    {
+        return $this->availabilitySlots;
     }
 
     // Setters
@@ -52,8 +62,13 @@ class Provider
         $this->bio = $bio;
     }
 
-    public function setAvailability(string $availability): void
+    public function setAvailabilitySlots(array $slots): void
     {
-        $this->availability = $availability;
+        $this->availabilitySlots = $slots;
+    }
+
+    public function addAvailabilitySlot(AvailabilitySlot $slot): void
+    {
+        $this->availabilitySlots[] = $slot;
     }
 }
