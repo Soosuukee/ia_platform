@@ -14,7 +14,7 @@ class Database
         if (self::$connection === null) {
             $host = $_ENV['DB_HOST'] ?? 'localhost';
             $port = $_ENV['DB_PORT'] ?? '3306';
-            $db   = $_ENV['DB_NAME'] ?? 'ia_platform';
+            $db   = $_ENV['DB_NAME'] ?? 'dev_db';
             $user = $_ENV['DB_USER'] ?? 'root';
             $pass = $_ENV['DB_PASSWORD'] ?? '';
 
