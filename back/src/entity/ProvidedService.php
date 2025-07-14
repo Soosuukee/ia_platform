@@ -15,7 +15,6 @@ class ProvidedService
     private int $providerId;
 
     public function __construct(
-        int $id,
         string $title,
         string $description,
         ?int $minPrice,
@@ -23,7 +22,6 @@ class ProvidedService
         string $duration,
         int $providerId
     ) {
-        $this->id = $id;
         $this->title = $title;
         $this->description = $description;
         $this->minPrice = $minPrice;

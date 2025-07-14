@@ -7,7 +7,7 @@ namespace Soosuuke\IaPlatform\Entity;
 use DateTimeImmutable;
 use Soosuuke\IaPlatform\Contract\AccountHolder;
 
-class Provider implements AccountHolder
+class Client implements AccountHolder
 {
     private int $id;
     private string $firstName;
@@ -17,37 +17,28 @@ class Provider implements AccountHolder
     private string $country;
     private string $role;
     private DateTimeImmutable $createdAt;
-    private string $title;
-    private string $presentation;
-
-    /**
-     * @var AvailabilitySlot[]
-     */
-    private array $availabilitySlots = [];
 
     public function __construct(
         string $firstName,
         string $lastName,
         string $email,
         string $password,
-        string $title,
-        string $presentation,
-        string $country,
+        string $country = 'unknown'
     ) {
         $this->firstName = $firstName;
         $this->lastName = $lastName;
         $this->email = $email;
         $this->password = $password;
-        $this->title = $title;
-        $this->presentation = $presentation;
         $this->country = $country;
-        $this->role = 'provider';
+        $this->role = 'client';
         $this->createdAt = new DateTimeImmutable();
     }
 
-    // Implémentation de l'interface AccountHolder
-
-
+    // Getters
+    public function getId(): int
+    {
+        return $this->id;
+    }
     public function getFirstName(): string
     {
         return $this->firstName;
@@ -57,6 +48,8 @@ class Provider implements AccountHolder
     {
         return $this->lastName;
     }
+
+
     public function getEmail(): string
     {
         return $this->email;
@@ -80,29 +73,6 @@ class Provider implements AccountHolder
     public function getCreatedAt(): DateTimeImmutable
     {
         return $this->createdAt;
-    }
-
-    public function getId(): int
-    {
-        return $this->id;
-    }
-
-    public function getTitle(): string
-    {
-        return $this->title;
-    }
-
-    public function getPresentation(): string
-    {
-        return $this->presentation;
-    }
-
-    /**
-     * @return AvailabilitySlot[]
-     */
-    public function getAvailabilitySlots(): array
-    {
-        return $this->availabilitySlots;
     }
 
     // Setters
@@ -130,25 +100,5 @@ class Provider implements AccountHolder
     public function setCountry(string $country): void
     {
         $this->country = $country;
-    }
-
-    public function setTitle(string $title): void
-    {
-        $this->title = $title;
-    }
-
-    public function setPresentation(string $presentation): void
-    {
-        $this->presentation = $presentation;
-    }
-
-    public function setAvailabilitySlots(array $slots): void
-    {
-        $this->availabilitySlots = $slots;
-    }
-
-    public function addAvailabilitySlot(AvailabilitySlot $slot): void
-    {
-        $this->availabilitySlots[] = $slot;
     }
 }

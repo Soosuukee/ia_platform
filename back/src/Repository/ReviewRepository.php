@@ -6,8 +6,6 @@ namespace Soosuuke\IaPlatform\Repository;
 
 use Soosuuke\IaPlatform\Config\Database;
 use Soosuuke\IaPlatform\Entity\Review;
-use Soosuuke\IaPlatform\Repository\ProviderRepository;
-use Soosuuke\IaPlatform\Repository\UserRepository;
 use DateTimeImmutable;
 use ReflectionClass;
 
@@ -42,10 +40,10 @@ class ReviewRepository
         return $reviews;
     }
 
-    public function findAllByUserId(int $userId): array
+    public function findAllByClientId(int $clientId): array
     {
-        $stmt = $this->pdo->prepare('SELECT * FROM review WHERE user_id = ? ORDER BY created_at DESC');
-        $stmt->execute([$userId]);
+        $stmt = $this->pdo->prepare('SELECT * FROM review WHERE client_id = ? ORDER BY created_at DESC');
+        $stmt->execute([$clientId]);
 
         $reviews = [];
         while ($row = $stmt->fetch()) {
@@ -58,18 +56,40 @@ class ReviewRepository
     public function save(Review $review): void
     {
         $stmt = $this->pdo->prepare('
-            INSERT INTO review (user_id, provider_id, content, rating, created_at)
+            INSERT INTO review (client_id, provider_id, content, rating, created_at)
             VALUES (?, ?, ?, ?, ?)
         ');
 
         $stmt->execute([
-            $review->getUser()->getId(),
-            $review->getProvider()->getId(),
+            $review->getClientId(),
+            $review->getProviderId(),
             $review->getContent(),
             $review->getRating(),
             $review->getCreatedAt()->format('Y-m-d H:i:s')
         ]);
+
+        $id = (int) $this->pdo->lastInsertId();
+        $ref = new ReflectionClass(Review::class);
+        $idProp = $ref->getProperty('id');
+        $idProp->setAccessible(true);
+        $idProp->setValue($review, $id);
     }
+
+    public function update(Review $review): void
+    {
+        $stmt = $this->pdo->prepare('
+        UPDATE review
+        SET content = ?, rating = ?
+        WHERE id = ?
+    ');
+
+        $stmt->execute([
+            $review->getContent(),
+            $review->getRating(),
+            $review->getId()
+        ]);
+    }
+
 
     public function delete(int $id): void
     {
@@ -79,15 +99,9 @@ class ReviewRepository
 
     private function mapToReview(array $data): Review
     {
-        $userRepo = new UserRepository();
-        $providerRepo = new ProviderRepository();
-
-        $user = $userRepo->findById((int) $data['user_id']);
-        $provider = $providerRepo->findById((int) $data['provider_id']);
-
         $review = new Review(
-            $user,
-            $provider,
+            (int) $data['client_id'],
+            (int) $data['provider_id'],
             $data['content'],
             (int) $data['rating']
         );

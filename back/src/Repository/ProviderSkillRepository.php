@@ -20,8 +20,8 @@ class ProviderSkillRepository
     {
         $stmt = $this->pdo->prepare('INSERT INTO provider_skill (provider_id, skill_id) VALUES (?, ?)');
         $stmt->execute([
-            $link->getProvider()->getId(),
-            $link->getSkill()->getId()
+            $link->getProviderId(),
+            $link->getSkillId()
         ]);
     }
 
@@ -38,7 +38,7 @@ class ProviderSkillRepository
         $skillRepo = new SkillRepository();
 
         while ($row = $stmt->fetch()) {
-            $skills[] = $skillRepo->mapToSkill($row); // ou new Skill(...) selon ton usage
+            $skills[] = $skillRepo->mapToSkill($row); // suppose que SkillRepository::mapToSkill existe
         }
 
         return $skills;

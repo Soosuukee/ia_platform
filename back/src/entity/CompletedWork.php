@@ -4,20 +4,19 @@ declare(strict_types=1);
 
 namespace Soosuuke\IaPlatform\Entity;
 
-use Soosuuke\IaPlatform\Entity\Provider;
 use DateTimeImmutable;
 
 class CompletedWork
 {
     private int $id;
-    private Provider $provider;
+    private int $providerId;
     private string $title;
     private string $description;
     private DateTimeImmutable $completedAt;
 
-    public function __construct(Provider $provider, string $title, string $description)
+    public function __construct(int $providerId, string $title, string $description)
     {
-        $this->provider = $provider;
+        $this->providerId = $providerId;
         $this->title = $title;
         $this->description = $description;
         $this->completedAt = new DateTimeImmutable();
@@ -29,9 +28,9 @@ class CompletedWork
         return $this->id;
     }
 
-    public function getProvider(): Provider
+    public function getProviderId(): int
     {
-        return $this->provider;
+        return $this->providerId;
     }
 
     public function getTitle(): string

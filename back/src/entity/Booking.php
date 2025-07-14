@@ -4,23 +4,21 @@ declare(strict_types=1);
 
 namespace Soosuuke\IaPlatform\Entity;
 
-use Soosuuke\IaPlatform\Entity\User;
-use Soosuuke\IaPlatform\Entity\AvailabilitySlot;
 use DateTimeImmutable;
 
 class Booking
 {
     private int $id;
     private string $status; // pending, accepted, declined
-    private User $client;
-    private AvailabilitySlot $slot;
+    private int $clientId;
+    private int $slotId;
     private DateTimeImmutable $createdAt;
 
-    public function __construct(string $status, User $client, AvailabilitySlot $slot)
+    public function __construct(string $status, int $clientId, int $slotId)
     {
         $this->status = $status;
-        $this->client = $client;
-        $this->slot = $slot;
+        $this->clientId = $clientId;
+        $this->slotId = $slotId;
         $this->createdAt = new DateTimeImmutable();
     }
 
@@ -35,14 +33,14 @@ class Booking
         return $this->status;
     }
 
-    public function getClient(): User
+    public function getClientId(): int
     {
-        return $this->client;
+        return $this->clientId;
     }
 
-    public function getSlot(): AvailabilitySlot
+    public function getSlotId(): int
     {
-        return $this->slot;
+        return $this->slotId;
     }
 
     public function getCreatedAt(): DateTimeImmutable
@@ -51,19 +49,19 @@ class Booking
     }
 
     // Setters
-
     public function setStatus(string $status): void
     {
-        $this->status = 'pending';
-    }
-    public function setClient(User $client): void
-    {
-        $this->client = $client;
+        $this->status = $status;
     }
 
-    public function setSlot(AvailabilitySlot $slot): void
+    public function setClientId(int $clientId): void
     {
-        $this->slot = $slot;
+        $this->clientId = $clientId;
+    }
+
+    public function setSlotId(int $slotId): void
+    {
+        $this->slotId = $slotId;
     }
 
     public function setCreatedAt(DateTimeImmutable $createdAt): void

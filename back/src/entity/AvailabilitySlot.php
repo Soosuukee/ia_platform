@@ -4,23 +4,22 @@ declare(strict_types=1);
 
 namespace Soosuuke\IaPlatform\Entity;
 
-use Soosuuke\IaPlatform\Entity\Provider;
 use DateTimeImmutable;
 
 class AvailabilitySlot
 {
     private int $id;
-    private Provider $provider;
+    private int $providerId;
     private DateTimeImmutable $startTime;
     private DateTimeImmutable $endTime;
     private bool $isBooked;
 
-    public function __construct(Provider $provider, DateTimeImmutable $startTime, DateTimeImmutable $endTime, bool $isBooked)
+    public function __construct(int $providerId, DateTimeImmutable $startTime, DateTimeImmutable $endTime, bool $isBooked = false)
     {
-        $this->provider = $provider;
+        $this->providerId = $providerId;
         $this->startTime = $startTime;
         $this->endTime = $endTime;
-        $this->isBooked = false;
+        $this->isBooked = $isBooked;
     }
 
     // Getters
@@ -29,9 +28,9 @@ class AvailabilitySlot
         return $this->id;
     }
 
-    public function getProvider(): Provider
+    public function getProviderId(): int
     {
-        return $this->provider;
+        return $this->providerId;
     }
 
     public function getStartTime(): DateTimeImmutable
@@ -50,9 +49,9 @@ class AvailabilitySlot
     }
 
     // Setters
-    public function setProvider(Provider $provider): void
+    public function setProviderId(int $providerId): void
     {
-        $this->provider = $provider;
+        $this->providerId = $providerId;
     }
 
     public function setStartTime(DateTimeImmutable $startTime): void

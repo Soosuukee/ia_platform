@@ -5,23 +5,21 @@ declare(strict_types=1);
 namespace Soosuuke\IaPlatform\Entity;
 
 use DateTimeImmutable;
-use Soosuuke\IaPlatform\Entity\User;
-use Soosuuke\IaPlatform\Entity\Provider;
 
 class Request
 {
     private int $requestId;
-    private User $user;
-    private Provider $provider;
+    private int $clientId;
+    private int $providerId;
     private string $title;
     private string $description;
     private DateTimeImmutable $createdAt;
     private string $status; // pending / accepted / declined / completed
 
-    public function __construct(User $user, Provider $provider, string $title, string $description)
+    public function __construct(int $clientId, int $providerId, string $title, string $description)
     {
-        $this->user = $user;
-        $this->provider = $provider;
+        $this->clientId = $clientId;
+        $this->providerId = $providerId;
         $this->title = $title;
         $this->description = $description;
         $this->createdAt = new DateTimeImmutable();
@@ -34,14 +32,14 @@ class Request
         return $this->requestId;
     }
 
-    public function getUser(): User
+    public function getClientId(): int
     {
-        return $this->user;
+        return $this->clientId;
     }
 
-    public function getProvider(): Provider
+    public function getProvider(): int
     {
-        return $this->provider;
+        return $this->providerId;
     }
 
     public function getTitle(): string

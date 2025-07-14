@@ -6,7 +6,6 @@ namespace Soosuuke\IaPlatform\Repository;
 
 use Soosuuke\IaPlatform\Config\Database;
 use Soosuuke\IaPlatform\Entity\CompletedWork;
-use Soosuuke\IaPlatform\Repository\ProviderRepository;
 use DateTimeImmutable;
 use ReflectionClass;
 
@@ -61,12 +60,36 @@ class CompletedWorkRepository
         ');
 
         $stmt->execute([
-            $work->getProvider()->getId(),
+            $work->getProviderId(),
             $work->getTitle(),
             $work->getDescription(),
             $work->getCompletedAt()->format('Y-m-d H:i:s')
         ]);
+
+        $id = (int) $this->pdo->lastInsertId();
+        $ref = new ReflectionClass(CompletedWork::class);
+        $idProp = $ref->getProperty('id');
+        $idProp->setAccessible(true);
+        $idProp->setValue($work, $id);
     }
+
+    public function update(CompletedWork $work): void
+    {
+        $stmt = $this->pdo->prepare('
+        UPDATE completed_work
+        SET provider_id = ?, title = ?, description = ?, completed_at = ?
+        WHERE id = ?
+    ');
+
+        $stmt->execute([
+            $work->getProviderId(),
+            $work->getTitle(),
+            $work->getDescription(),
+            $work->getCompletedAt()->format('Y-m-d H:i:s'),
+            $work->getId(),
+        ]);
+    }
+
 
     public function delete(int $id): void
     {
@@ -76,11 +99,8 @@ class CompletedWorkRepository
 
     private function mapToCompletedWork(array $data): CompletedWork
     {
-        $providerRepo = new ProviderRepository();
-        $provider = $providerRepo->findById((int) $data['provider_id']);
-
         $work = new CompletedWork(
-            $provider,
+            (int) $data['provider_id'],
             $data['title'],
             $data['description']
         );

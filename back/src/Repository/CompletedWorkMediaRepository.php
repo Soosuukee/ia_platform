@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Soosuuke\IaPlatform\Repository;
 
 use Soosuuke\IaPlatform\Config\Database;
-use Soosuuke\IaPlatform\Repository\CompletedWorkRepository;
 use Soosuuke\IaPlatform\Entity\CompletedWorkMedia;
 use ReflectionClass;
 
@@ -48,7 +47,7 @@ class CompletedWorkMediaRepository
         ');
 
         $stmt->execute([
-            $media->getWork()->getId(),
+            $media->getWorkId(),
             $media->getMediaType(),
             $media->getMediaUrl()
         ]);
@@ -62,11 +61,8 @@ class CompletedWorkMediaRepository
 
     private function mapToMedia(array $data): CompletedWorkMedia
     {
-        $workRepo = new CompletedWorkRepository();
-        $work = $workRepo->findById((int) $data['work_id']);
-
         $media = new CompletedWorkMedia(
-            $work,
+            (int) $data['work_id'],
             $data['media_type'],
             $data['media_url']
         );

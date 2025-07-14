@@ -6,7 +6,6 @@ namespace Soosuuke\IaPlatform\Repository;
 
 use Soosuuke\IaPlatform\Entity\Notification;
 use Soosuuke\IaPlatform\Config\Database;
-use Soosuuke\IaPlatform\Repository\UserRepository;
 use DateTimeImmutable;
 use ReflectionClass;
 
@@ -19,10 +18,14 @@ class NotificationRepository
         $this->pdo = Database::connect();
     }
 
-    public function findByUserId(int $userId): array
+    public function findByRecipient(int $recipientId, string $recipientType): array
     {
-        $stmt = $this->pdo->prepare('SELECT * FROM notification WHERE recipient_id = ? ORDER BY created_at DESC');
-        $stmt->execute([$userId]);
+        $stmt = $this->pdo->prepare('
+            SELECT * FROM notification
+            WHERE recipient_id = ? AND recipient_type = ?
+            ORDER BY created_at DESC
+        ');
+        $stmt->execute([$recipientId, $recipientType]);
 
         $notifications = [];
         while ($row = $stmt->fetch()) {
@@ -35,16 +38,24 @@ class NotificationRepository
     public function save(Notification $notification): void
     {
         $stmt = $this->pdo->prepare('
-            INSERT INTO notification (recipient_id, message, is_read, created_at)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO notification (recipient_id, recipient_type, message, is_read, created_at)
+            VALUES (?, ?, ?, ?, ?)
         ');
 
         $stmt->execute([
-            $notification->getRecipient()->getId(),
+            $notification->getRecipientId(),
+            $notification->getRecipientType(),
             $notification->getMessage(),
             (int) $notification->isRead(),
             $notification->getCreatedAt()->format('Y-m-d H:i:s'),
         ]);
+
+        // Injecter l’ID généré si besoin
+        $id = (int) $this->pdo->lastInsertId();
+        $ref = new ReflectionClass(Notification::class);
+        $idProp = $ref->getProperty('id');
+        $idProp->setAccessible(true);
+        $idProp->setValue($notification, $id);
     }
 
     public function markAsRead(int $notificationId): void
@@ -55,22 +66,21 @@ class NotificationRepository
 
     private function mapToNotification(array $data): Notification
     {
-        $userRepo = new UserRepository();
-        $user = $userRepo->findById((int) $data['recipient_id']);
-
         $notification = new Notification(
-            $user,
+            (int) $data['recipient_id'],
+            $data['recipient_type'],
             $data['message']
         );
 
         $ref = new ReflectionClass(Notification::class);
+
         $idProp = $ref->getProperty('id');
         $idProp->setAccessible(true);
         $idProp->setValue($notification, (int) $data['id']);
 
-        $createdProp = $ref->getProperty('createdAt');
-        $createdProp->setAccessible(true);
-        $createdProp->setValue($notification, new DateTimeImmutable($data['created_at']));
+        $createdAtProp = $ref->getProperty('createdAt');
+        $createdAtProp->setAccessible(true);
+        $createdAtProp->setValue($notification, new DateTimeImmutable($data['created_at']));
 
         $isReadProp = $ref->getProperty('isRead');
         $isReadProp->setAccessible(true);

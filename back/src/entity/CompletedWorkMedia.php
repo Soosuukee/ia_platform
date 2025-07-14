@@ -4,18 +4,16 @@ declare(strict_types=1);
 
 namespace Soosuuke\IaPlatform\Entity;
 
-use Soosuuke\IaPlatform\Entity\CompletedWork;
-
 class CompletedWorkMedia
 {
     private int $id;
-    private CompletedWork $work;
+    private int $workId;
     private string $mediaType;
     private string $mediaUrl;
 
-    public function __construct(CompletedWork $work, string $mediaType, string $mediaUrl)
+    public function __construct(int $workId, string $mediaType, string $mediaUrl)
     {
-        $this->work = $work;
+        $this->workId = $workId;
         $this->mediaType = $mediaType;
         $this->mediaUrl = $mediaUrl;
     }
@@ -26,9 +24,9 @@ class CompletedWorkMedia
         return $this->id;
     }
 
-    public function getWork(): CompletedWork
+    public function getWorkId(): int
     {
-        return $this->work;
+        return $this->workId;
     }
 
     public function getMediaType(): string
@@ -41,7 +39,12 @@ class CompletedWorkMedia
         return $this->mediaUrl;
     }
 
-    // Setters (si tu veux pouvoir modifier)
+    // Setters
+    public function setWorkId(int $workId): void
+    {
+        $this->workId = $workId;
+    }
+
     public function setMediaType(string $mediaType): void
     {
         $this->mediaType = $mediaType;

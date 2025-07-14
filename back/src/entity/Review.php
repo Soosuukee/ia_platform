@@ -5,22 +5,21 @@ declare(strict_types=1);
 namespace Soosuuke\IaPlatform\Entity;
 
 use DateTimeImmutable;
-use Soosuuke\IaPlatform\Entity\User;
-use Soosuuke\IaPlatform\Entity\Provider;
+
 
 class Review
 {
     private int $id;
-    private User $user;
-    private Provider $provider;
+    private int $clientId;
+    private int $providerId;
     private string $content;
     private int $rating; // Note sur 5
     private DateTimeImmutable $createdAt;
 
-    public function __construct(User $user, Provider $provider, string $content, int $rating)
+    public function __construct(int $clientId, int $providerId, string $content, int $rating)
     {
-        $this->user = $user;
-        $this->provider = $provider;
+        $this->clientId = $clientId;
+        $this->providerId = $providerId;
         $this->content = $content;
         $this->rating = $rating;
         $this->createdAt = new DateTimeImmutable();
@@ -32,14 +31,14 @@ class Review
         return $this->id;
     }
 
-    public function getUser(): User
+    public function getClientId(): int
     {
-        return $this->user;
+        return $this->clientId;
     }
 
-    public function getProvider(): Provider
+    public function getProviderId(): int
     {
-        return $this->provider;
+        return $this->providerId;
     }
 
     public function getContent(): string
@@ -66,15 +65,5 @@ class Review
     public function setRating(int $rating): void
     {
         $this->rating = $rating;
-    }
-
-    public function setProvider(Provider $provider): void
-    {
-        $this->provider = $provider;
-    }
-
-    public function setUser(User $user): void
-    {
-        $this->user = $user;
     }
 }

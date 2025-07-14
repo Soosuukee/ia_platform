@@ -6,7 +6,6 @@ namespace Soosuuke\IaPlatform\Repository;
 
 use Soosuuke\IaPlatform\Entity\AvailabilitySlot;
 use Soosuuke\IaPlatform\Config\Database;
-use Soosuuke\IaPlatform\Repository\ProviderRepository;
 use DateTimeImmutable;
 use ReflectionClass;
 
@@ -72,6 +71,28 @@ class AvailabilitySlotRepository
         ]);
     }
 
+    public function update(AvailabilitySlot $slot): void
+    {
+        $stmt = $this->pdo->prepare('
+        UPDATE availability_slot
+        SET start_time = ?, end_time = ?, is_booked = ?
+        WHERE id = ?
+    ');
+
+        $stmt->execute([
+            $slot->getStartTime()->format('Y-m-d H:i:s'),
+            $slot->getEndTime()->format('Y-m-d H:i:s'),
+            (int) $slot->isBooked(),
+            $slot->getId()
+        ]);
+    }
+
+    public function delete(int $slotId): void
+    {
+        $stmt = $this->pdo->prepare('DELETE FROM availability_slot WHERE id = ?');
+        $stmt->execute([$slotId]);
+    }
+
     public function markAsBooked(int $slotId): void
     {
         $stmt = $this->pdo->prepare('
@@ -82,11 +103,8 @@ class AvailabilitySlotRepository
 
     private function mapToSlot(array $data): AvailabilitySlot
     {
-        $providerRepo = new ProviderRepository(); // ou injecté dans le constructeur
-        $provider = $providerRepo->findById((int) $data['provider_id']);
-
         $slot = new AvailabilitySlot(
-            $provider,
+            (int) $data['provider_id'],
             new DateTimeImmutable($data['start_time']),
             new DateTimeImmutable($data['end_time']),
             (bool) $data['is_booked']

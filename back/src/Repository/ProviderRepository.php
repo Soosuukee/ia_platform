@@ -6,7 +6,6 @@ namespace Soosuuke\IaPlatform\Repository;
 
 use Soosuuke\IaPlatform\Entity\Provider;
 use Soosuuke\IaPlatform\Config\Database;
-use Soosuuke\IaPlatform\Repository\UserRepository;
 use Soosuuke\IaPlatform\Repository\AvailabilitySlotRepository;
 use DateTimeImmutable;
 use ReflectionClass;
@@ -29,10 +28,10 @@ class ProviderRepository
         return $data ? $this->mapToProvider($data) : null;
     }
 
-    public function findByUserId(int $userId): ?Provider
+    public function findByEmail(string $email): ?Provider
     {
-        $stmt = $this->pdo->prepare('SELECT * FROM provider WHERE user_id = ?');
-        $stmt->execute([$userId]);
+        $stmt = $this->pdo->prepare('SELECT * FROM provider WHERE email = ?');
+        $stmt->execute([$email]);
         $data = $stmt->fetch();
 
         return $data ? $this->mapToProvider($data) : null;
@@ -53,32 +52,38 @@ class ProviderRepository
     public function save(Provider $provider): void
     {
         $stmt = $this->pdo->prepare('
-        INSERT INTO provider (user_id, bio, created_at)
-        VALUES (?, ?, ?)
-    ');
+            INSERT INTO provider (
+                email, password, country, role,
+                title, presentation,
+                firstname, lastname,
+                created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ');
 
         $stmt->execute([
-            $provider->getUser()->getId(),
-            $provider->getBio(),
+            $provider->getEmail(),
+            $provider->getPassword(),
+            $provider->getCountry(),
+            $provider->getRole(),
+            $provider->getTitle(),
+            $provider->getPresentation(),
+            $provider->getFirstname(),
+            $provider->getLastname(),
             $provider->getCreatedAt()->format('Y-m-d H:i:s'),
         ]);
 
         $providerId = (int) $this->pdo->lastInsertId();
 
-        // Injecter l'ID dans l'objet Provider
         $ref = new ReflectionClass(Provider::class);
         $idProp = $ref->getProperty('id');
         $idProp->setAccessible(true);
         $idProp->setValue($provider, $providerId);
 
-        // Enregistrer les slots si présents
         $slotRepo = new AvailabilitySlotRepository();
-
         foreach ($provider->getAvailabilitySlots() as $slot) {
             $slotRepo->saveForProvider($providerId, $slot);
         }
     }
-
 
     public function delete(int $id): void
     {
@@ -88,25 +93,28 @@ class ProviderRepository
 
     private function mapToProvider(array $data): Provider
     {
-        $userRepo = new UserRepository();
-        $slotRepo = new AvailabilitySlotRepository();
+        $provider = new Provider(
+            $data['email'],
+            $data['password'],
+            $data['title'],
+            $data['presentation'],
+            $data['country'],
+            $data['firstname'],
+            $data['lastname']
+        );
 
-        $user = $userRepo->findById((int) $data['user_id']);
-        $provider = new Provider($user, $data['bio']);
-
-        // injecter l'ID
         $ref = new ReflectionClass(Provider::class);
+
         $idProp = $ref->getProperty('id');
         $idProp->setAccessible(true);
         $idProp->setValue($provider, (int) $data['id']);
 
-        // injecter createdAt
         $createdAtProp = $ref->getProperty('createdAt');
         $createdAtProp->setAccessible(true);
         $createdAtProp->setValue($provider, new DateTimeImmutable($data['created_at']));
 
-        // injecter les créneaux de disponibilité
-        $slots = $slotRepo->findAllByProviderId((int)$data['id']);
+        $slotRepo = new AvailabilitySlotRepository();
+        $slots = $slotRepo->findAllByProviderId((int) $data['id']);
         $provider->setAvailabilitySlots($slots);
 
         return $provider;

@@ -4,28 +4,26 @@ declare(strict_types=1);
 
 namespace Soosuuke\IaPlatform\Entity;
 
-use Soosuuke\IaPlatform\Entity\Provider;
-use Soosuuke\IaPlatform\Entity\Skill;
-
 class ProviderSkill
-{
-    private Provider $provider;
-    private Skill $skill;
 
-    public function __construct(Provider $provider, Skill $skill)
+{
+    private int $providerId;
+    private int $skillId;
+
+    public function __construct(int $providerId, int $skillId)
     {
-        $this->provider = $provider;
-        $this->skill = $skill;
+        $this->providerId = $providerId;
+        $this->skillId = $skillId;
     }
 
     // Getters
-    public function getProvider(): Provider
+    public function getProviderId(): int
     {
-        return $this->provider;
+        return $this->providerId;
     }
 
-    public function getSkill(): Skill
+    public function getSkillId(): int
     {
-        return $this->skill;
+        return $this->skillId;
     }
 }
