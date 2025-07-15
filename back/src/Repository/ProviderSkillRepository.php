@@ -16,13 +16,18 @@ class ProviderSkillRepository
         $this->pdo = Database::connect();
     }
 
-    public function addSkillToProvider(ProviderSkill $link): void
+    public function save(ProviderSkill $providerSkill): void
     {
-        $stmt = $this->pdo->prepare('INSERT INTO provider_skill (provider_id, skill_id) VALUES (?, ?)');
-        $stmt->execute([
-            $link->getProviderId(),
-            $link->getSkillId()
-        ]);
+        $stmt = $this->pdo->prepare('
+            INSERT INTO provider_skill (provider_id, skill_id)
+            VALUES (?, ?)
+        ');
+        if (!$stmt->execute([
+            $providerSkill->getProviderId(),
+            $providerSkill->getSkillId(),
+        ])) {
+            throw new \RuntimeException('Failed to save provider skill for provider ID ' . $providerSkill->getProviderId());
+        }
     }
 
     public function findAllSkillsByProviderId(int $providerId): array
@@ -38,15 +43,26 @@ class ProviderSkillRepository
         $skillRepo = new SkillRepository();
 
         while ($row = $stmt->fetch()) {
-            $skills[] = $skillRepo->mapToSkill($row); // suppose que SkillRepository::mapToSkill existe
+            $skills[] = $skillRepo->mapToSkill($row);
         }
 
         return $skills;
     }
 
-    public function deleteAllSkillsForProvider(int $providerId): void
+    public function deleteByProviderId(int $providerId): void
     {
         $stmt = $this->pdo->prepare('DELETE FROM provider_skill WHERE provider_id = ?');
-        $stmt->execute([$providerId]);
+        if (!$stmt->execute([$providerId])) {
+            throw new \RuntimeException('Failed to delete provider skills for provider ID ' . $providerId);
+        }
+    }
+
+    public function deleteByProviderAndSkillId(int $providerId, int $skillId): bool
+    {
+        $stmt = $this->pdo->prepare('DELETE FROM provider_skill WHERE provider_id = ? AND skill_id = ?');
+        if (!$stmt->execute([$providerId, $skillId])) {
+            throw new \RuntimeException("Failed to delete skill ID $skillId for provider ID $providerId");
+        }
+        return $stmt->rowCount() > 0;
     }
 }

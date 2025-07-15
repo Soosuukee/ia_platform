@@ -24,17 +24,17 @@ class CompletedWorkRepository
         $stmt->execute([$id]);
         $data = $stmt->fetch();
 
-        return $data ? $this->mapToCompletedWork($data) : null;
+        return $data ? $this->hydrate($data) : null;
     }
 
     public function findAllByProviderId(int $providerId): array
     {
-        $stmt = $this->pdo->prepare('SELECT * FROM completed_work WHERE provider_id = ? ORDER BY completed_at DESC');
+        $stmt = $this->pdo->prepare('SELECT * FROM completed_work WHERE provider_id = ? ORDER BY start_date DESC');
         $stmt->execute([$providerId]);
 
         $works = [];
         while ($row = $stmt->fetch()) {
-            $works[] = $this->mapToCompletedWork($row);
+            $works[] = $this->hydrate($row);
         }
 
         return $works;
@@ -42,11 +42,11 @@ class CompletedWorkRepository
 
     public function findAll(): array
     {
-        $stmt = $this->pdo->query('SELECT * FROM completed_work ORDER BY completed_at DESC');
+        $stmt = $this->pdo->query('SELECT * FROM completed_work ORDER BY start_date DESC');
         $works = [];
 
         while ($row = $stmt->fetch()) {
-            $works[] = $this->mapToCompletedWork($row);
+            $works[] = $this->hydrate($row);
         }
 
         return $works;
@@ -55,15 +55,17 @@ class CompletedWorkRepository
     public function save(CompletedWork $work): void
     {
         $stmt = $this->pdo->prepare('
-            INSERT INTO completed_work (provider_id, title, description, completed_at)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO completed_work (provider_id, company, title, description, start_date, end_date)
+            VALUES (?, ?, ?, ?, ?, ?)
         ');
 
         $stmt->execute([
             $work->getProviderId(),
+            $work->getCompany(),
             $work->getTitle(),
             $work->getDescription(),
-            $work->getCompletedAt()->format('Y-m-d H:i:s')
+            $work->getStartDate()->format('Y-m-d'),
+            $work->getEndDate()?->format('Y-m-d')
         ]);
 
         $id = (int) $this->pdo->lastInsertId();
@@ -76,20 +78,20 @@ class CompletedWorkRepository
     public function update(CompletedWork $work): void
     {
         $stmt = $this->pdo->prepare('
-        UPDATE completed_work
-        SET provider_id = ?, title = ?, description = ?, completed_at = ?
-        WHERE id = ?
-    ');
+            UPDATE completed_work
+            SET company = ?, title = ?, description = ?, start_date = ?, end_date = ?
+            WHERE id = ?
+        ');
 
         $stmt->execute([
-            $work->getProviderId(),
+            $work->getCompany(),
             $work->getTitle(),
             $work->getDescription(),
-            $work->getCompletedAt()->format('Y-m-d H:i:s'),
+            $work->getStartDate()->format('Y-m-d H:i:s'),
+            $work->getEndDate()?->format('Y-m-d H:i:s'),
             $work->getId(),
         ]);
     }
-
 
     public function delete(int $id): void
     {
@@ -97,25 +99,28 @@ class CompletedWorkRepository
         $stmt->execute([$id]);
     }
 
-    private function mapToCompletedWork(array $data): CompletedWork
+    public function deleteByProviderId(int $providerId): void
+    {
+        // Assuming a PDO connection or similar
+        $stmt = $this->pdo->prepare("DELETE FROM completed_work WHERE provider_id = ?");
+        $stmt->execute([$providerId]);
+    }
+
+    private function hydrate(array $data): CompletedWork
     {
         $work = new CompletedWork(
             (int) $data['provider_id'],
+            $data['company'],
             $data['title'],
-            $data['description']
+            $data['description'],
+            new DateTimeImmutable($data['start_date']),
+            $data['end_date'] ? new DateTimeImmutable($data['end_date']) : null
         );
 
         $ref = new ReflectionClass(CompletedWork::class);
-
-        // Inject ID
         $idProp = $ref->getProperty('id');
         $idProp->setAccessible(true);
         $idProp->setValue($work, (int) $data['id']);
-
-        // Inject completedAt
-        $completedAtProp = $ref->getProperty('completedAt');
-        $completedAtProp->setAccessible(true);
-        $completedAtProp->setValue($work, new DateTimeImmutable($data['completed_at']));
 
         return $work;
     }

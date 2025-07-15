@@ -39,6 +39,7 @@ class Client implements AccountHolder
     {
         return $this->id;
     }
+
     public function getFirstName(): string
     {
         return $this->firstName;
@@ -48,7 +49,6 @@ class Client implements AccountHolder
     {
         return $this->lastName;
     }
-
 
     public function getEmail(): string
     {
@@ -76,13 +76,12 @@ class Client implements AccountHolder
     }
 
     // Setters
-
-    public function getSetFirstName(string $firstName): void
+    public function setFirstName(string $firstName): void
     {
         $this->firstName = $firstName;
     }
 
-    public function getSetLastName(string $lastName): void
+    public function setLastName(string $lastName): void
     {
         $this->lastName = $lastName;
     }

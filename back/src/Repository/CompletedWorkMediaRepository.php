@@ -53,6 +53,21 @@ class CompletedWorkMediaRepository
         ]);
     }
 
+    public function update(CompletedWorkMedia $media): void
+    {
+        $stmt = $this->pdo->prepare('
+        UPDATE completed_work_media
+        SET media_type = ?, media_url = ?
+        WHERE id = ?
+    ');
+
+        $stmt->execute([
+            $media->getMediaType(),
+            $media->getMediaUrl(),
+            $media->getId(),
+        ]);
+    }
+
     public function delete(int $id): void
     {
         $stmt = $this->pdo->prepare('DELETE FROM completed_work_media WHERE id = ?');

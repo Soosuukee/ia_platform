@@ -37,7 +37,7 @@ class Request
         return $this->clientId;
     }
 
-    public function getProvider(): int
+    public function getProviderId(): int
     {
         return $this->providerId;
     }

@@ -15,6 +15,7 @@ class Provider implements AccountHolder
     private string $email;
     private string $password;
     private string $country;
+    private ?string $profilePicture = null;
     private string $role;
     private DateTimeImmutable $createdAt;
     private string $title;
@@ -25,6 +26,16 @@ class Provider implements AccountHolder
      */
     private array $availabilitySlots = [];
 
+    /**
+     * @var Skill[]
+     */
+    private array $skills = [];
+
+    /**
+     * @var string[]
+     */
+    private array $socialLinks = []; // Nouveau champ pour les liens sociaux
+
     public function __construct(
         string $firstName,
         string $lastName,
@@ -33,6 +44,9 @@ class Provider implements AccountHolder
         string $title,
         string $presentation,
         string $country,
+        ?string $profilePicture,
+        string $role = 'provider',
+        array $socialLinks = [] // Paramètre optionnel pour les liens sociaux
     ) {
         $this->firstName = $firstName;
         $this->lastName = $lastName;
@@ -41,12 +55,18 @@ class Provider implements AccountHolder
         $this->title = $title;
         $this->presentation = $presentation;
         $this->country = $country;
-        $this->role = 'provider';
+        $this->profilePicture = $profilePicture;
+        $this->role = $role;
         $this->createdAt = new DateTimeImmutable();
+        $this->socialLinks = $socialLinks; // Initialisation des liens sociaux
     }
 
-    // Implémentation de l'interface AccountHolder
+    // Getters
 
+    public function getId(): int
+    {
+        return $this->id;
+    }
 
     public function getFirstName(): string
     {
@@ -57,6 +77,7 @@ class Provider implements AccountHolder
     {
         return $this->lastName;
     }
+
     public function getEmail(): string
     {
         return $this->email;
@@ -82,11 +103,6 @@ class Provider implements AccountHolder
         return $this->createdAt;
     }
 
-    public function getId(): int
-    {
-        return $this->id;
-    }
-
     public function getTitle(): string
     {
         return $this->title;
@@ -97,6 +113,11 @@ class Provider implements AccountHolder
         return $this->presentation;
     }
 
+    public function getProfilePicture(): ?string
+    {
+        return $this->profilePicture;
+    }
+
     /**
      * @return AvailabilitySlot[]
      */
@@ -105,14 +126,30 @@ class Provider implements AccountHolder
         return $this->availabilitySlots;
     }
 
+    /**
+     * @return Skill[]
+     */
+    public function getSkills(): array
+    {
+        return $this->skills;
+    }
+
+    /**
+     * @return string[]
+     */
+    public function getSocialLinks(): array
+    {
+        return $this->socialLinks; // Nouveau getter
+    }
+
     // Setters
 
-    public function getSetFirstName(string $firstName): void
+    public function setFirstName(string $firstName): void
     {
         $this->firstName = $firstName;
     }
 
-    public function getSetLastName(string $lastName): void
+    public function setLastName(string $lastName): void
     {
         $this->lastName = $lastName;
     }
@@ -142,6 +179,11 @@ class Provider implements AccountHolder
         $this->presentation = $presentation;
     }
 
+    public function setProfilePicture(?string $profilePicture): void
+    {
+        $this->profilePicture = $profilePicture;
+    }
+
     public function setAvailabilitySlots(array $slots): void
     {
         $this->availabilitySlots = $slots;
@@ -150,5 +192,15 @@ class Provider implements AccountHolder
     public function addAvailabilitySlot(AvailabilitySlot $slot): void
     {
         $this->availabilitySlots[] = $slot;
+    }
+
+    public function setSkills(array $skills): void
+    {
+        $this->skills = $skills;
+    }
+
+    public function setSocialLinks(array $socialLinks): void
+    {
+        $this->socialLinks = $socialLinks; // Nouveau setter
     }
 }

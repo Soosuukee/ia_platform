@@ -50,6 +50,15 @@ class SkillRepository
         $stmt->execute([$id]);
     }
 
+    public function findByName(string $name): ?Skill
+    {
+        $stmt = $this->pdo->prepare('SELECT * FROM skill WHERE name = ? LIMIT 1');
+        $stmt->execute([$name]);
+        $data = $stmt->fetch();
+
+        return $data ? $this->mapToSkill($data) : null;
+    }
+
     public function mapToSkill(array $data): Skill
     {
         $skill = new Skill($data['name']);

@@ -69,15 +69,20 @@ class AvailabilitySlotRepository
             $slot->getEndTime()->format('Y-m-d H:i:s'),
             (int) $slot->isBooked(),
         ]);
+
+        $ref = new ReflectionClass(AvailabilitySlot::class);
+        $idProp = $ref->getProperty('id');
+        $idProp->setAccessible(true);
+        $idProp->setValue($slot, (int) $this->pdo->lastInsertId());
     }
 
     public function update(AvailabilitySlot $slot): void
     {
         $stmt = $this->pdo->prepare('
-        UPDATE availability_slot
-        SET start_time = ?, end_time = ?, is_booked = ?
-        WHERE id = ?
-    ');
+            UPDATE availability_slot
+            SET start_time = ?, end_time = ?, is_booked = ?
+            WHERE id = ?
+        ');
 
         $stmt->execute([
             $slot->getStartTime()->format('Y-m-d H:i:s'),
@@ -91,6 +96,14 @@ class AvailabilitySlotRepository
     {
         $stmt = $this->pdo->prepare('DELETE FROM availability_slot WHERE id = ?');
         $stmt->execute([$slotId]);
+    }
+
+    public function deleteByProviderId(int $providerId): void
+    {
+        $stmt = $this->pdo->prepare('DELETE FROM availability_slot WHERE provider_id = ?');
+        if (!$stmt->execute([$providerId])) {
+            throw new \RuntimeException('Failed to delete availability slots for provider ID ' . $providerId);
+        }
     }
 
     public function markAsBooked(int $slotId): void

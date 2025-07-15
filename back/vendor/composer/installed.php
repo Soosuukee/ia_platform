@@ -3,7 +3,7 @@
         'name' => 'soosuuke/ia_platform',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => 'f96f188cfc474e225737d37a2a023518b85f96a9',
+        'reference' => '86957cc61a6448eef3bc96b53a26f248183ff069',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -19,6 +19,15 @@
             'aliases' => array(),
             'dev_requirement' => false,
         ),
+        'nikic/fast-route' => array(
+            'pretty_version' => 'v1.3.0',
+            'version' => '1.3.0.0',
+            'reference' => '181d480e08d9476e61381e04a71b34dc0432e812',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../nikic/fast-route',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
         'phpoption/phpoption' => array(
             'pretty_version' => '1.9.3',
             'version' => '1.9.3.0',
@@ -31,7 +40,7 @@
         'soosuuke/ia_platform' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => 'f96f188cfc474e225737d37a2a023518b85f96a9',
+            'reference' => '86957cc61a6448eef3bc96b53a26f248183ff069',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

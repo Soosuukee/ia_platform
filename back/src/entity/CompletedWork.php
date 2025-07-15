@@ -10,16 +10,26 @@ class CompletedWork
 {
     private int $id;
     private int $providerId;
+    private string $company;
     private string $title;
     private string $description;
-    private DateTimeImmutable $completedAt;
+    private DateTimeImmutable $startDate;
+    private ?DateTimeImmutable $endDate;
 
-    public function __construct(int $providerId, string $title, string $description)
-    {
+    public function __construct(
+        int $providerId,
+        string $company,
+        string $title,
+        string $description,
+        DateTimeImmutable $startDate,
+        ?DateTimeImmutable $endDate = null
+    ) {
         $this->providerId = $providerId;
+        $this->company = $company;
         $this->title = $title;
         $this->description = $description;
-        $this->completedAt = new DateTimeImmutable();
+        $this->startDate = $startDate;
+        $this->endDate = $endDate;
     }
 
     // Getters
@@ -33,6 +43,11 @@ class CompletedWork
         return $this->providerId;
     }
 
+    public function getCompany(): string
+    {
+        return $this->company;
+    }
+
     public function getTitle(): string
     {
         return $this->title;
@@ -43,12 +58,22 @@ class CompletedWork
         return $this->description;
     }
 
-    public function getCompletedAt(): DateTimeImmutable
+    public function getStartDate(): DateTimeImmutable
     {
-        return $this->completedAt;
+        return $this->startDate;
     }
 
-    // Setters (si tu veux les garder)
+    public function getEndDate(): ?DateTimeImmutable
+    {
+        return $this->endDate;
+    }
+
+    // Setters
+    public function setCompany(string $company): void
+    {
+        $this->company = $company;
+    }
+
     public function setTitle(string $title): void
     {
         $this->title = $title;
@@ -59,8 +84,13 @@ class CompletedWork
         $this->description = $description;
     }
 
-    public function setCompletedAt(DateTimeImmutable $completedAt): void
+    public function setStartDate(DateTimeImmutable $startDate): void
     {
-        $this->completedAt = $completedAt;
+        $this->startDate = $startDate;
+    }
+
+    public function setEndDate(?DateTimeImmutable $endDate): void
+    {
+        $this->endDate = $endDate;
     }
 }

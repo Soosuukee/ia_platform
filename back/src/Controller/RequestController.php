@@ -30,7 +30,7 @@ class RequestController
         ) {
             http_response_code(400);
             echo json_encode(['error' => 'Missing or invalid fields']);
-            return;
+            exit;
         }
 
         $request = new Request(
@@ -44,6 +44,7 @@ class RequestController
 
         http_response_code(201);
         echo json_encode(['message' => 'Request created', 'id' => $request->getRequestId()]);
+        exit;
     }
 
     // GET /requests/provider/{providerId}
@@ -54,7 +55,7 @@ class RequestController
         if ((int) $providerId !== $sessionProviderId) {
             http_response_code(403);
             echo json_encode(['error' => 'Unauthorized']);
-            return;
+            exit;
         }
 
         $requests = $this->repo->findAllByProviderId($providerId);
@@ -62,6 +63,7 @@ class RequestController
         $data = array_map(fn($r) => $this->serialize($r), $requests);
 
         echo json_encode($data);
+        exit;
     }
 
     // GET /requests/client/{clientId}
@@ -72,7 +74,7 @@ class RequestController
         if ((int) $clientId !== $sessionClientId) {
             http_response_code(403);
             echo json_encode(['error' => 'Unauthorized']);
-            return;
+            exit;
         }
 
         $requests = $this->repo->findAllByClientId($clientId);
@@ -80,6 +82,7 @@ class RequestController
         $data = array_map(fn($r) => $this->serialize($r), $requests);
 
         echo json_encode($data);
+        exit;
     }
 
     // PATCH /requests/{id}
@@ -91,26 +94,27 @@ class RequestController
         if (empty($data['status'])) {
             http_response_code(400);
             echo json_encode(['error' => 'Missing status']);
-            return;
+            exit;
         }
 
         $validStatuses = ['pending', 'accepted', 'declined', 'completed'];
         if (!in_array($data['status'], $validStatuses, true)) {
             http_response_code(400);
             echo json_encode(['error' => 'Invalid status']);
-            return;
+            exit;
         }
 
         $request = $this->repo->findById($id);
 
-        if (!$request || $request->getProvider() !== $sessionProviderId) {
+        if (!$request || $request->getProviderId() !== $sessionProviderId) {
             http_response_code(403);
             echo json_encode(['error' => 'Unauthorized or request not found']);
-            return;
+            exit;
         }
 
         $this->repo->updateStatus($id, $data['status']);
         echo json_encode(['message' => 'Status updated']);
+        exit;
     }
 
     // DELETE /requests/{id}
@@ -122,11 +126,12 @@ class RequestController
         if (!$request || $request->getClientId() !== $sessionClientId) {
             http_response_code(403);
             echo json_encode(['error' => 'Unauthorized or request not found']);
-            return;
+            exit;
         }
 
         $this->repo->delete($id);
         echo json_encode(['message' => 'Request deleted']);
+        exit;
     }
 
     // Private helper
@@ -135,7 +140,7 @@ class RequestController
         return [
             'id' => $r->getRequestId(),
             'clientId' => $r->getClientId(),
-            'providerId' => $r->getProvider(),
+            'providerId' => $r->getProviderId(),
             'title' => $r->getTitle(),
             'description' => $r->getDescription(),
             'status' => $r->getStatus(),

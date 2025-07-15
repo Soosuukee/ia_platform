@@ -21,7 +21,9 @@ class ClientRepository
     public function findById(int $id): ?Client
     {
         $stmt = $this->pdo->prepare('SELECT * FROM client WHERE id = ?');
-        $stmt->execute([$id]);
+        if (!$stmt->execute([$id])) {
+            throw new \RuntimeException("Failed to fetch client with ID $id");
+        }
         $data = $stmt->fetch();
 
         return $data ? $this->mapToClient($data) : null;
@@ -30,7 +32,9 @@ class ClientRepository
     public function findByEmail(string $email): ?Client
     {
         $stmt = $this->pdo->prepare('SELECT * FROM client WHERE email = ?');
-        $stmt->execute([$email]);
+        if (!$stmt->execute([$email])) {
+            throw new \RuntimeException("Failed to fetch client with email $email");
+        }
         $data = $stmt->fetch();
 
         return $data ? $this->mapToClient($data) : null;
@@ -55,7 +59,7 @@ class ClientRepository
             VALUES (?, ?, ?, ?, ?, ?, ?)
         ');
 
-        $stmt->execute([
+        if (!$stmt->execute([
             $client->getFirstName(),
             $client->getLastName(),
             $client->getEmail(),
@@ -63,7 +67,9 @@ class ClientRepository
             $client->getRole(),
             $client->getCountry(),
             $client->getCreatedAt()->format('Y-m-d H:i:s'),
-        ]);
+        ])) {
+            throw new \RuntimeException('Failed to save client');
+        }
 
         $ref = new ReflectionClass(Client::class);
         $prop = $ref->getProperty('id');
@@ -71,10 +77,40 @@ class ClientRepository
         $prop->setValue($client, (int) $this->pdo->lastInsertId());
     }
 
+    public function update(Client $client): void
+    {
+        $stmt = $this->pdo->prepare('
+            UPDATE client
+            SET first_name = ?, last_name = ?, email = ?, password = ?, country = ?
+            WHERE id = ?
+        ');
+
+        if (!$stmt->execute([
+            $client->getFirstName(),
+            $client->getLastName(),
+            $client->getEmail(),
+            $client->getPassword(),
+            $client->getCountry(),
+            $client->getId(),
+        ])) {
+            throw new \RuntimeException("Failed to update client with ID {$client->getId()}");
+        }
+    }
+
     public function delete(int $id): void
     {
         $stmt = $this->pdo->prepare('DELETE FROM client WHERE id = ?');
-        $stmt->execute([$id]);
+        if (!$stmt->execute([$id])) {
+            throw new \RuntimeException("Failed to delete client with ID $id");
+        }
+    }
+
+    public function deleteByClientId(int $clientId): void
+    {
+        $stmt = $this->pdo->prepare('DELETE FROM client WHERE id = ?');
+        if (!$stmt->execute([$clientId])) {
+            throw new \RuntimeException("Failed to delete client with ID $clientId");
+        }
     }
 
     private function mapToClient(array $data): Client

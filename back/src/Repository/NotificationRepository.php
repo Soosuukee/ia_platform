@@ -21,7 +21,7 @@ class NotificationRepository
     public function findByRecipient(int $recipientId, string $recipientType): array
     {
         $stmt = $this->pdo->prepare('
-            SELECT * FROM notification
+            SELECT * FROM `notification`
             WHERE recipient_id = ? AND recipient_type = ?
             ORDER BY created_at DESC
         ');
@@ -38,7 +38,7 @@ class NotificationRepository
     public function save(Notification $notification): void
     {
         $stmt = $this->pdo->prepare('
-            INSERT INTO notification (recipient_id, recipient_type, message, is_read, created_at)
+            INSERT INTO `notification` (recipient_id, recipient_type, message, is_read, created_at)
             VALUES (?, ?, ?, ?, ?)
         ');
 

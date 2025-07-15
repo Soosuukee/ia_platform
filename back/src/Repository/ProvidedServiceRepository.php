@@ -98,6 +98,12 @@ class ProvidedServiceRepository
         $stmt->execute([$id]);
     }
 
+    public function deleteByProviderId(int $providerId): void
+    {
+        $stmt = $this->pdo->prepare("DELETE FROM provided_service WHERE provider_id = ?");
+        $stmt->execute([$providerId]);
+    }
+
     private function mapToProvidedService(array $data): ProvidedService
     {
         $service = new ProvidedService(

@@ -8,6 +8,7 @@ use Soosuuke\IaPlatform\Entity\CompletedWork;
 use Soosuuke\IaPlatform\Entity\CompletedWorkMedia;
 use Soosuuke\IaPlatform\Repository\CompletedWorkRepository;
 use Soosuuke\IaPlatform\Repository\CompletedWorkMediaRepository;
+use DateTimeImmutable;
 
 class CompletedWorkController
 {
@@ -20,39 +21,36 @@ class CompletedWorkController
         $this->mediaRepo = new CompletedWorkMediaRepository();
     }
 
-    // GET /completed-works
     public function index(): void
     {
-        $sessionProviderId = $_SESSION['provider_id'] ?? null;
-
-        if (!$sessionProviderId) {
+        $providerId = $_SESSION['provider_id'] ?? null;
+        if (!$providerId) {
             http_response_code(401);
             echo json_encode(['error' => 'Unauthorized']);
-            return;
+            exit;
         }
 
-        $works = $this->workRepo->findAllByProviderId($sessionProviderId);
+        $works = $this->workRepo->findAllByProviderId($providerId);
 
-        $data = array_map(fn($work) => [
+        echo json_encode(array_map(fn($work) => [
             'id' => $work->getId(),
             'providerId' => $work->getProviderId(),
+            'company' => $work->getCompany(),
             'title' => $work->getTitle(),
             'description' => $work->getDescription(),
-            'completedAt' => $work->getCompletedAt()->format('Y-m-d H:i:s'),
-        ], $works);
-
-        echo json_encode($data);
+            'startDate' => $work->getStartDate()->format('Y-m-d'),
+            'endDate' => $work->getEndDate()?->format('Y-m-d'),
+        ], $works));
+        exit;
     }
 
-    // GET /completed-works/{id} (public)
     public function show(int $id): void
     {
         $work = $this->workRepo->findById($id);
-
         if (!$work) {
             http_response_code(404);
             echo json_encode(['error' => 'Work not found']);
-            return;
+            exit;
         }
 
         $media = $this->mediaRepo->findAllByWorkId($id);
@@ -60,96 +58,68 @@ class CompletedWorkController
         echo json_encode([
             'id' => $work->getId(),
             'providerId' => $work->getProviderId(),
+            'company' => $work->getCompany(),
             'title' => $work->getTitle(),
             'description' => $work->getDescription(),
-            'completedAt' => $work->getCompletedAt()->format('Y-m-d H:i:s'),
+            'startDate' => $work->getStartDate()->format('Y-m-d'),
+            'endDate' => $work->getEndDate()?->format('Y-m-d'),
             'media' => array_map(fn($m) => [
                 'id' => $m->getId(),
                 'mediaType' => $m->getMediaType(),
                 'mediaUrl' => $m->getMediaUrl()
             ], $media)
         ]);
+        exit;
     }
 
-    // POST /completed-works
     public function store(): void
     {
-        $sessionProviderId = $_SESSION['provider_id'] ?? null;
+        $providerId = $_SESSION['provider_id'] ?? null;
         $data = json_decode(file_get_contents('php://input'), true);
 
-        if (!$sessionProviderId || empty($data['title']) || empty($data['description'])) {
+        if (!$providerId || empty($data['title']) || empty($data['description']) || empty($data['company']) || empty($data['startDate'])) {
             http_response_code(400);
-            echo json_encode(['error' => 'Missing fields or unauthorized']);
-            return;
+            echo json_encode(['error' => 'Champs manquants']);
+            exit;
         }
 
+        $startDate = new DateTimeImmutable($data['startDate']);
+        $endDate = !empty($data['endDate']) ? new DateTimeImmutable($data['endDate']) : null;
+
         $work = new CompletedWork(
-            $sessionProviderId,
+            $providerId,
+            $data['company'],
             $data['title'],
-            $data['description']
+            $data['description'],
+            $startDate,
+            $endDate
         );
 
         $this->workRepo->save($work);
 
         if (!empty($data['media']) && is_array($data['media'])) {
-            foreach ($data['media'] as $mediaData) {
-                if (!empty($mediaData['mediaType']) && !empty($mediaData['mediaUrl'])) {
-                    $media = new CompletedWorkMedia(
-                        $work->getId(),
-                        $mediaData['mediaType'],
-                        $mediaData['mediaUrl']
-                    );
+            foreach ($data['media'] as $m) {
+                if (!empty($m['mediaType']) && !empty($m['mediaUrl'])) {
+                    $media = new CompletedWorkMedia($work->getId(), $m['mediaType'], $m['mediaUrl']);
                     $this->mediaRepo->save($media);
                 }
             }
         }
 
         http_response_code(201);
-        echo json_encode(['message' => 'Completed work created', 'id' => $work->getId()]);
+        echo json_encode(['message' => 'Work enregistré', 'id' => $work->getId()]);
+        exit;
     }
 
-    // POST /completed-works/{id}/media
-    public function addMedia(int $id): void
-    {
-        $sessionProviderId = $_SESSION['provider_id'] ?? null;
-        $work = $this->workRepo->findById($id);
-
-        if (!$work || $work->getProviderId() !== $sessionProviderId) {
-            http_response_code(403);
-            echo json_encode(['error' => 'Unauthorized']);
-            return;
-        }
-
-        $data = json_decode(file_get_contents('php://input'), true);
-
-        if (empty($data['mediaType']) || empty($data['mediaUrl'])) {
-            http_response_code(400);
-            echo json_encode(['error' => 'Missing mediaType or mediaUrl']);
-            return;
-        }
-
-        $media = new CompletedWorkMedia(
-            $work->getId(),
-            $data['mediaType'],
-            $data['mediaUrl']
-        );
-
-        $this->mediaRepo->save($media);
-
-        http_response_code(201);
-        echo json_encode(['message' => 'Media added']);
-    }
-
-    // PATCH /completed-works/{id}
     public function patch(int $id): void
     {
-        $sessionProviderId = $_SESSION['provider_id'] ?? null;
+        $providerId = $_SESSION['provider_id'] ?? null;
         $work = $this->workRepo->findById($id);
 
-        if (!$work || $work->getProviderId() !== $sessionProviderId) {
+        if (!$work || $work->getProviderId() !== $providerId) {
             http_response_code(403);
             echo json_encode(['error' => 'Unauthorized']);
-            return;
+            exit;
         }
 
         $data = json_decode(file_get_contents('php://input'), true);
@@ -160,25 +130,34 @@ class CompletedWorkController
         if (isset($data['description'])) {
             $work->setDescription($data['description']);
         }
+        if (isset($data['company'])) {
+            $work->setCompany($data['company']);
+        }
+        if (isset($data['startDate'])) {
+            $work->setStartDate(new DateTimeImmutable($data['startDate']));
+        }
+        if (array_key_exists('endDate', $data)) {
+            $work->setEndDate($data['endDate'] ? new DateTimeImmutable($data['endDate']) : null);
+        }
 
         $this->workRepo->update($work);
-
-        echo json_encode(['message' => 'Completed work updated']);
+        echo json_encode(['message' => 'Work modifié']);
+        exit;
     }
 
-    // DELETE /completed-works/{id}
     public function destroy(int $id): void
     {
-        $sessionProviderId = $_SESSION['provider_id'] ?? null;
+        $providerId = $_SESSION['provider_id'] ?? null;
         $work = $this->workRepo->findById($id);
 
-        if (!$work || $work->getProviderId() !== $sessionProviderId) {
+        if (!$work || $work->getProviderId() !== $providerId) {
             http_response_code(403);
             echo json_encode(['error' => 'Unauthorized']);
-            return;
+            exit;
         }
 
         $this->workRepo->delete($id);
-        echo json_encode(['message' => 'Completed work deleted']);
+        echo json_encode(['message' => 'Work supprimé']);
+        exit;
     }
 }

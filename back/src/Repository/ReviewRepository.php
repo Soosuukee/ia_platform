@@ -21,16 +21,20 @@ class ReviewRepository
     public function findById(int $id): ?Review
     {
         $stmt = $this->pdo->prepare('SELECT * FROM review WHERE id = ?');
-        $stmt->execute([$id]);
+        if (!$stmt->execute([$id])) {
+            throw new \RuntimeException("Failed to fetch review with ID $id");
+        }
         $data = $stmt->fetch();
 
         return $data ? $this->mapToReview($data) : null;
     }
 
-    public function findAllByProviderId(int $providerId): array
+    public function findAllByProviderId(int $providerId, int $limit = 10): array
     {
-        $stmt = $this->pdo->prepare('SELECT * FROM review WHERE provider_id = ? ORDER BY created_at DESC');
-        $stmt->execute([$providerId]);
+        $stmt = $this->pdo->prepare('SELECT * FROM review WHERE provider_id = ? ORDER BY created_at DESC LIMIT ?');
+        if (!$stmt->execute([$providerId, $limit])) {
+            throw new \RuntimeException("Failed to fetch reviews for provider ID $providerId");
+        }
 
         $reviews = [];
         while ($row = $stmt->fetch()) {
@@ -40,10 +44,12 @@ class ReviewRepository
         return $reviews;
     }
 
-    public function findAllByClientId(int $clientId): array
+    public function findAllByClientId(int $clientId, int $limit = 10): array
     {
-        $stmt = $this->pdo->prepare('SELECT * FROM review WHERE client_id = ? ORDER BY created_at DESC');
-        $stmt->execute([$clientId]);
+        $stmt = $this->pdo->prepare('SELECT * FROM review WHERE client_id = ? ORDER BY created_at DESC LIMIT ?');
+        if (!$stmt->execute([$clientId, $limit])) {
+            throw new \RuntimeException("Failed to fetch reviews for client ID $clientId");
+        }
 
         $reviews = [];
         while ($row = $stmt->fetch()) {
@@ -59,14 +65,15 @@ class ReviewRepository
             INSERT INTO review (client_id, provider_id, content, rating, created_at)
             VALUES (?, ?, ?, ?, ?)
         ');
-
-        $stmt->execute([
+        if (!$stmt->execute([
             $review->getClientId(),
             $review->getProviderId(),
             $review->getContent(),
             $review->getRating(),
             $review->getCreatedAt()->format('Y-m-d H:i:s')
-        ]);
+        ])) {
+            throw new \RuntimeException('Failed to save review');
+        }
 
         $id = (int) $this->pdo->lastInsertId();
         $ref = new ReflectionClass(Review::class);
@@ -78,23 +85,41 @@ class ReviewRepository
     public function update(Review $review): void
     {
         $stmt = $this->pdo->prepare('
-        UPDATE review
-        SET content = ?, rating = ?
-        WHERE id = ?
-    ');
-
-        $stmt->execute([
+            UPDATE review
+            SET content = ?, rating = ?
+            WHERE id = ?
+        ');
+        if (!$stmt->execute([
             $review->getContent(),
             $review->getRating(),
             $review->getId()
-        ]);
+        ])) {
+            throw new \RuntimeException("Failed to update review with ID {$review->getId()}");
+        }
     }
-
 
     public function delete(int $id): void
     {
         $stmt = $this->pdo->prepare('DELETE FROM review WHERE id = ?');
-        $stmt->execute([$id]);
+        if (!$stmt->execute([$id])) {
+            throw new \RuntimeException("Failed to delete review with ID $id");
+        }
+    }
+
+    public function deleteByClientId(int $clientId): void
+    {
+        $stmt = $this->pdo->prepare('DELETE FROM review WHERE client_id = ?');
+        if (!$stmt->execute([$clientId])) {
+            throw new \RuntimeException("Failed to delete reviews for client ID $clientId");
+        }
+    }
+
+    public function deleteByProviderId(int $providerId): void
+    {
+        $stmt = $this->pdo->prepare('DELETE FROM review WHERE provider_id = ?');
+        if (!$stmt->execute([$providerId])) {
+            throw new \RuntimeException("Failed to delete reviews for provider ID $providerId");
+        }
     }
 
     private function mapToReview(array $data): Review

@@ -21,16 +21,20 @@ class RequestRepository
     public function findById(int $id): ?Request
     {
         $stmt = $this->pdo->prepare('SELECT * FROM request WHERE request_id = ?');
-        $stmt->execute([$id]);
-
+        if (!$stmt->execute([$id])) {
+            throw new \RuntimeException("Failed to fetch request with ID $id");
+        }
         $data = $stmt->fetch();
+
         return $data ? $this->mapToRequest($data) : null;
     }
 
     public function findAllByProviderId(int $providerId): array
     {
         $stmt = $this->pdo->prepare('SELECT * FROM request WHERE provider_id = ? ORDER BY created_at DESC');
-        $stmt->execute([$providerId]);
+        if (!$stmt->execute([$providerId])) {
+            throw new \RuntimeException("Failed to fetch requests for provider ID $providerId");
+        }
 
         $requests = [];
         while ($row = $stmt->fetch()) {
@@ -40,10 +44,12 @@ class RequestRepository
         return $requests;
     }
 
-    public function findAllByClientId(int $clientId): array
+    public function findAllByClientId(int $clientId, int $limit = 10): array
     {
-        $stmt = $this->pdo->prepare('SELECT * FROM request WHERE client_id = ? ORDER BY created_at DESC');
-        $stmt->execute([$clientId]);
+        $stmt = $this->pdo->prepare('SELECT * FROM request WHERE client_id = ? ORDER BY created_at DESC LIMIT ?');
+        if (!$stmt->execute([$clientId, $limit])) {
+            throw new \RuntimeException("Failed to fetch requests for client ID $clientId");
+        }
 
         $requests = [];
         while ($row = $stmt->fetch()) {
@@ -59,15 +65,16 @@ class RequestRepository
             INSERT INTO request (client_id, provider_id, title, description, created_at, status)
             VALUES (?, ?, ?, ?, ?, ?)
         ');
-
-        $stmt->execute([
+        if (!$stmt->execute([
             $request->getClientId(),
-            $request->getProvider(),
+            $request->getProviderId(),
             $request->getTitle(),
             $request->getDescription(),
             $request->getCreatedAt()->format('Y-m-d H:i:s'),
             $request->getStatus()
-        ]);
+        ])) {
+            throw new \RuntimeException('Failed to save request');
+        }
 
         $id = (int) $this->pdo->lastInsertId();
         $ref = new ReflectionClass(Request::class);
@@ -79,13 +86,33 @@ class RequestRepository
     public function updateStatus(int $requestId, string $newStatus): void
     {
         $stmt = $this->pdo->prepare('UPDATE request SET status = ? WHERE request_id = ?');
-        $stmt->execute([$newStatus, $requestId]);
+        if (!$stmt->execute([$newStatus, $requestId])) {
+            throw new \RuntimeException("Failed to update status for request ID $requestId");
+        }
     }
 
     public function delete(int $requestId): void
     {
         $stmt = $this->pdo->prepare('DELETE FROM request WHERE request_id = ?');
-        $stmt->execute([$requestId]);
+        if (!$stmt->execute([$requestId])) {
+            throw new \RuntimeException("Failed to delete request with ID $requestId");
+        }
+    }
+
+    public function deleteByClientId(int $clientId): void
+    {
+        $stmt = $this->pdo->prepare('DELETE FROM request WHERE client_id = ?');
+        if (!$stmt->execute([$clientId])) {
+            throw new \RuntimeException("Failed to delete requests for client ID $clientId");
+        }
+    }
+
+    public function deleteByProviderId(int $providerId): void
+    {
+        $stmt = $this->pdo->prepare('DELETE FROM request WHERE provider_id = ?');
+        if (!$stmt->execute([$providerId])) {
+            throw new \RuntimeException("Failed to delete requests for provider ID $providerId");
+        }
     }
 
     private function mapToRequest(array $data): Request

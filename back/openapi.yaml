@@ -1,0 +1,2382 @@
+```yaml
+openapi: 3.0.3
+info:
+  title: IaPlatform API
+  description: API for managing bookings, completed works, availability slots, clients, providers, services, reviews, requests, and diplomas.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+components:
+  securitySchemes:
+    sessionAuth:
+      type: apiKey
+      in: cookie
+      name: PHPSESSID
+      description: Session cookie for client_id or provider_id authentication
+  schemas:
+    Client:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: The ID of the client
+        firstName:
+          type: string
+          description: First name of the client
+        lastName:
+          type: string
+          description: Last name of the client
+        email:
+          type: string
+          format: email
+          description: Email address of the client
+        country:
+          type: string
+          description: Country of the client
+      required:
+        - firstName
+        - lastName
+        - email
+        - country
+    Provider:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: The ID of the provider
+        firstName:
+          type: string
+          description: First name of the provider
+        lastName:
+          type: string
+          description: Last name of the provider
+        email:
+          type: string
+          format: email
+          description: Email address of the provider
+        title:
+          type: string
+          description: Title of the provider
+        presentation:
+          type: string
+          description: Presentation text of the provider
+        country:
+          type: string
+          description: Country of the provider
+        profilepicture:
+          type: string
+          nullable: true
+          description: URL of the profile picture
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation date of the provider
+      required:
+        - firstName
+        - lastName
+        - email
+        - title
+        - presentation
+        - country
+    Booking:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: The ID of the booking
+        status:
+          type: string
+          description: Status of the booking
+        clientId:
+          type: integer
+          description: ID of the client
+        slotId:
+          type: integer
+          description: ID of the availability slot
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation date of the booking
+      required:
+        - status
+        - clientId
+        - slotId
+    CompletedWork:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: The ID of the completed work
+        providerId:
+          type: integer
+          description: The ID of the provider
+        company:
+          type: string
+          description: Company associated with the work
+        title:
+          type: string
+          description: Title of the work
+        description:
+          type: string
+          description: Description of the work
+        startDate:
+          type: string
+          format: date
+          description: Start date of the work
+        endDate:
+          type: string
+          format: date
+          nullable: true
+          description: End date of the work (optional)
+        media:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+                description: The ID of the media
+              mediaType:
+                type: string
+                description: Type of media (e.g., image, video)
+              mediaUrl:
+                type: string
+                description: URL of the media
+      required:
+        - providerId
+        - company
+        - title
+        - description
+        - startDate
+    AvailabilitySlot:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: The ID of the slot
+        providerId:
+          type: integer
+          description: The ID of the provider
+        startTime:
+          type: string
+          format: date-time
+          description: Start time (ISO 8601 format)
+        endTime:
+          type: string
+          format: date-time
+          description: End time (ISO 8601 format)
+        isBooked:
+          type: boolean
+          description: Whether the slot is booked
+      required:
+        - providerId
+        - startTime
+        - endTime
+    ProvidedService:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: The ID of the service
+        providerId:
+          type: integer
+          description: The ID of the provider
+        title:
+          type: string
+          description: Title of the service
+        description:
+          type: string
+          description: Description of the service
+        minPrice:
+          type: integer
+          nullable: true
+          description: Minimum price of the service
+        maxPrice:
+          type: integer
+          nullable: true
+          description: Maximum price of the service
+        duration:
+          type: string
+          description: Duration of the service
+      required:
+        - providerId
+        - title
+        - description
+        - duration
+    Review:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: The ID of the review
+        clientId:
+          type: integer
+          description: The ID of the client
+        providerId:
+          type: integer
+          description: The ID of the provider
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+          description: Rating (1-5)
+        content:
+          type: string
+          description: Review content
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation date of the review
+      required:
+        - clientId
+        - providerId
+        - rating
+        - content
+    Request:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: The ID of the request
+        clientId:
+          type: integer
+          description: The ID of the client
+        providerId:
+          type: integer
+          description: The ID of the provider
+        title:
+          type: string
+          description: Title of the request
+        description:
+          type: string
+          description: Description of the request
+        status:
+          type: string
+          enum: [pending, accepted, declined, completed]
+          description: Status of the request
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation date of the request
+      required:
+        - clientId
+        - providerId
+        - title
+        - description
+    ProviderDiploma:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: The ID of the diploma
+        providerId:
+          type: integer
+          description: The ID of the provider
+        title:
+          type: string
+          description: Title of the diploma
+        institution:
+          type: string
+          description: Institution that awarded the diploma
+        description:
+          type: string
+          nullable: true
+          description: Description of the diploma
+        startDate:
+          type: string
+          format: date
+          nullable: true
+          description: Start date of the diploma
+        endDate:
+          type: string
+          format: date
+          nullable: true
+          description: End date of the diploma
+      required:
+        - providerId
+        - title
+        - institution
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+      required:
+        - error
+paths:
+  /bookings/{id}:
+    get:
+      summary: Retrieve a specific booking by ID
+      operationId: getBooking
+      tags:
+        - Booking
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: Booking retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Booking'
+        '403':
+          description: Unauthorized or not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Booking not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      summary: Update a booking completely
+      operationId: updateBooking
+      tags:
+        - Booking
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Booking'
+      responses:
+        '200':
+          description: Booking updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Booking updated
+        '400':
+          description: Missing fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Unauthorized or not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    patch:
+      summary: Partially update a booking
+      operationId: patchBooking
+      tags:
+        - Booking
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  description: Status of the booking
+                slotId:
+                  type: integer
+                  description: ID of the availability slot
+      responses:
+        '200':
+          description: Booking partially updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Booking patched
+        '403':
+          description: Unauthorized or not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      summary: Delete a booking
+      operationId: deleteBooking
+      tags:
+        - Booking
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: Booking deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Booking deleted
+        '403':
+          description: Unauthorized or not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /bookings:
+    post:
+      summary: Create a new booking
+      operationId: createBooking
+      tags:
+        - Booking
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Booking'
+      responses:
+        '201':
+          description: Booking created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Booking created
+                  id:
+                    type: integer
+                    description: The ID of the created booking
+        '400':
+          description: Missing fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /completed-works:
+    get:
+      summary: List all completed works for the authenticated provider
+      operationId: listCompletedWorks
+      tags:
+        - Completed Work
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: List of completed works
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CompletedWork'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      summary: Create a new completed work
+      operationId: createCompletedWork
+      tags:
+        - Completed Work
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompletedWork'
+      responses:
+        '201':
+          description: Completed work created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Work enregistré
+                  id:
+                    type: integer
+                    description: The ID of the created work
+        '400':
+          description: Missing fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /completed-works/{id}:
+    get:
+      summary: Retrieve a specific completed work by ID
+      operationId: getCompletedWork
+      tags:
+        - Completed Work
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Completed work retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompletedWork'
+        '404':
+          description: Completed work not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    patch:
+      summary: Partially update a completed work
+      operationId: patchCompletedWork
+      tags:
+        - Completed Work
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  description: Title of the work
+                description:
+                  type: string
+                  description: Description of the work
+                company:
+                  type: string
+                  description: Company associated with the work
+                startDate:
+                  type: string
+                  format: date
+                  description: Start date of the work
+                endDate:
+                  type: string
+                  format: date
+                  nullable: true
+                  description: End date of the work
+      responses:
+        '200':
+          description: Completed work partially updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Work modifié
+        '403':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Completed work not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      summary: Delete a completed work
+      operationId: deleteCompletedWork
+      tags:
+        - Completed Work
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: Completed work deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Work supprimé
+        '403':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Completed work not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /completed-works/{id}/media:
+    get:
+      summary: List all media for a completed work
+      operationId: listCompletedWorkMedia
+      tags:
+        - Completed Work
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of media
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      description: The ID of the media
+                    mediaType:
+                      type: string
+                      description: Type of media (e.g., image, video)
+                    mediaUrl:
+                      type: string
+                      description: URL of the media
+        '404':
+          description: Completed work not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      summary: Add media to a completed work
+      operationId: addMediaToCompletedWork
+      tags:
+        - Completed Work
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                mediaType:
+                  type: string
+                  description: Type of media (e.g., image, video)
+                mediaUrl:
+                  type: string
+                  description: URL of the media
+              required:
+                - mediaType
+                - mediaUrl
+      responses:
+        '201':
+          description: Media added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Média ajouté
+        '400':
+          description: Missing fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /providers/{providerId}/slots:
+    get:
+      summary: List all availability slots for a provider
+      operationId: listAvailabilitySlots
+      tags:
+        - Availability Slot
+      parameters:
+        - name: providerId
+          in: path
+          required: true
+          schema:
+            type: integer
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: List of availability slots
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AvailabilitySlot'
+        '403':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      summary: Create a new availability slot
+      operationId: createAvailabilitySlot
+      tags:
+        - Availability Slot
+      parameters:
+        - name: providerId
+          in: path
+          required: true
+          schema:
+            type: integer
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                startTime:
+                  type: string
+                  format: date-time
+                  description: Start time (ISO 8601 format)
+                endTime:
+                  type: string
+                  format: date-time
+                  description: End time (ISO 8601 format)
+              required:
+                - startTime
+                - endTime
+      responses:
+        '201':
+          description: Availability slot created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Slot created
+                  id:
+                    type: integer
+                    description: The ID of the created slot
+        '400':
+          description: Missing fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Provider not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /slots/{id}:
+    put:
+      summary: Update an availability slot completely
+      operationId: updateAvailabilitySlot
+      tags:
+        - Availability Slot
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AvailabilitySlot'
+      responses:
+        '200':
+          description: Availability slot updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Slot updated
+        '400':
+          description: Missing fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Slot not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    patch:
+      summary: Partially update an availability slot
+      operationId: patchAvailabilitySlot
+      tags:
+        - Availability Slot
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                startTime:
+                  type: string
+                  format: date-time
+                  description: Start time (ISO 8601 format)
+                endTime:
+                  type: string
+                  format: date-time
+                  description: End time (ISO 8601 format)
+                isBooked:
+                  type: boolean
+                  description: Whether the slot is booked
+      responses:
+        '200':
+          description: Availability slot partially updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Slot patched
+        '403':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Slot not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      summary: Delete an availability slot
+      operationId: deleteAvailabilitySlot
+      tags:
+        - Availability Slot
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: Availability slot deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Slot deleted
+        '403':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Slot not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /clients/register:
+    post:
+      summary: Register a new client
+      operationId: registerClient
+      tags:
+        - Client
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Client'
+      responses:
+        '201':
+          description: Client registered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Client registered successfully
+        '400':
+          description: Missing required fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Email already in use
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /clients/login:
+    post:
+      summary: Log in a client and set session
+      operationId: loginClient
+      tags:
+        - Client
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: Email address of the client
+                password:
+                  type: string
+                  description: Password for the client
+              required:
+                - email
+                - password
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Login successful
+        '400':
+          description: Missing email or password
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /clients/logout:
+    post:
+      summary: Log out the authenticated client
+      operationId: logoutClient
+      tags:
+        - Client
+      responses:
+        '200':
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Logout successful
+  /clients/dashboard:
+    get:
+      summary: Access the client dashboard
+      operationId: clientDashboard
+      tags:
+        - Client
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: Welcome to the client dashboard
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Welcome to the client dashboard
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Client not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /clients/{id}:
+    put:
+      summary: Update a client's information
+      operationId: updateClient
+      tags:
+        - Client
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                firstName:
+                  type: string
+                  description: First name of the client
+                lastName:
+                  type: string
+                  description: Last name of the client
+                email:
+                  type: string
+                  format: email
+                  description: Email address of the client
+                password:
+                  type: string
+                  description: Password for the client
+                country:
+                  type: string
+                  description: Country of the client
+      responses:
+        '200':
+          description: Client updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Client updated successfully
+        '403':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Client not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    patch:
+      summary: Partially update a client's information
+      operationId: patchClient
+      tags:
+        - Client
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                firstName:
+                  type: string
+                  description: First name of the client
+                lastName:
+                  type: string
+                  description: Last name of the client
+                email:
+                  type: string
+                  format: email
+                  description: Email address of the client
+                password:
+                  type: string
+                  description: Password for the client
+                country:
+                  type: string
+                  description: Country of the client
+      responses:
+        '200':
+          description: Client partially updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Client partially updated
+        '403':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Client not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /provided-services/{id}:
+    get:
+      summary: Retrieve a specific service by ID
+      operationId: getProvidedService
+      tags:
+        - Provided Service
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Service retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProvidedService'
+        '404':
+          description: Service not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      summary: Update a service completely
+      operationId: updateProvidedService
+      tags:
+        - Provided Service
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProvidedService'
+      responses:
+        '200':
+          description: Service updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Service updated
+        '400':
+          description: Missing fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Service not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    patch:
+      summary: Partially update a service
+      operationId: patchProvidedService
+      tags:
+        - Provided Service
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  description: Title of the service
+                description:
+                  type: string
+                  description: Description of the service
+                minPrice:
+                  type: integer
+                  nullable: true
+                  description: Minimum price of the service
+                maxPrice:
+                  type: integer
+                  nullable: true
+                  description: Maximum price of the service
+                duration:
+                  type: string
+                  description: Duration of the service
+      responses:
+        '200':
+          description: Service partially updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Service partially updated
+        '403':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Service not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      summary: Delete a service
+      operationId: deleteProvidedService
+      tags:
+        - Provided Service
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: Service deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Service deleted
+        '403':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Service not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /providers/{providerId}/services:
+    get:
+      summary: List all services for a provider
+      operationId: listProviderServices
+      tags:
+        - Provided Service
+      parameters:
+        - name: providerId
+          in: path
+          required: true
+          schema:
+            type: integer
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: List of services
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProvidedService'
+        '403':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      summary: Create a new service for a provider
+      operationId: createProviderService
+      tags:
+        - Provided Service
+      parameters:
+        - name: providerId
+          in: path
+          required: true
+          schema:
+            type: integer
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProvidedService'
+      responses:
+        '201':
+          description: Service created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Service created
+                  id:
+                    type: integer
+                    description: The ID of the created service
+        '400':
+          description: Missing fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /providers/{id}:
+    get:
+      summary: Retrieve a specific provider by ID
+      operationId: getProvider
+      tags:
+        - Provider
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Provider retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Provider'
+        '404':
+          description: Provider not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      summary: Update a provider's information
+      operationId: updateProvider
+      tags:
+        - Provider
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                firstName:
+                  type: string
+                  description: First name of the provider
+                lastName:
+                  type: string
+                  description: Last name of the provider
+                email:
+                  type: string
+                  format: email
+                  description: Email address of the provider
+                password:
+                  type: string
+                  description: Password for the provider
+                title:
+                  type: string
+                  description: Title of the provider
+                presentation:
+                  type: string
+                  description: Presentation text of the provider
+                country:
+                  type: string
+                  description: Country of the provider
+                profilepicture:
+                  type: string
+                  nullable: true
+                  description: URL of the profile picture
+      responses:
+        '200':
+          description: Provider updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Provider updated
+        '403':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Provider not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    patch:
+      summary: Partially update a provider's information
+      operationId: patchProvider
+      tags:
+        - Provider
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                firstName:
+                  type: string
+                  description: First name of the provider
+                lastName:
+                  type: string
+                  description: Last name of the provider
+                email:
+                  type: string
+                  format: email
+                  description: Email address of the provider
+                password:
+                  type: string
+                  description: Password for the provider
+                title:
+                  type: string
+                  description: Title of the provider
+                presentation:
+                  type: string
+                  description: Presentation text of the provider
+                country:
+                  type: string
+                  description: Country of the provider
+                profilepicture:
+                  type: string
+                  nullable: true
+                  description: URL of the profile picture
+      responses:
+        '200':
+          description: Provider partially updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Provider partially updated
+        '403':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Provider not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      summary: Delete a provider
+      operationId: deleteProvider
+      tags:
+        - Provider
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: Provider deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Provider deleted
+        '403':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Provider not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /providers:
+    post:
+      summary: Register a new provider
+      operationId: registerProvider
+      tags:
+        - Provider
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Provider'
+      responses:
+        '201':
+          description: Provider registered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Provider registered
+                  id:
+                    type: integer
+                    description: The ID of the created provider
+        '400':
+          description: Missing fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Email already in use
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /providers/login:
+    post:
+      summary: Log in a provider and set session
+      operationId: loginProvider
+      tags:
+        - Provider
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: Email address of the provider
+                password:
+                  type: string
+                  description: Password for the provider
+              required:
+                - email
+                - password
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Login successful
+        '400':
+          description: Missing fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /providers/logout:
+    post:
+      summary: Log out the authenticated provider
+      operationId: logoutProvider
+      tags:
+        - Provider
+      responses:
+        '200':
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Logout successful
+  /providers/dashboard:
+    get:
+      summary: Access the provider dashboard
+      operationId: providerDashboard
+      tags:
+        - Provider
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: Welcome to the provider dashboard
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Welcome to your dashboard
+                  provider:
+                    $ref: '#/components/schemas/Provider'
+        '403':
+          description: Not logged in or access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Provider not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /providers/{providerId}/reviews:
+    get:
+      summary: List all reviews for a provider
+      operationId: listProviderReviews
+      tags:
+        - Review
+      parameters:
+        - name: providerId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of reviews
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Review'
+  /reviews:
+    post:
+      summary: Create a new review
+      operationId: createReview
+      tags:
+        - Review
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Review'
+      responses:
+        '201':
+          description: Review created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Review created
+                  id:
+                    type: integer
+                    description: The ID of the created review
+        '400':
+          description: Missing fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /reviews/{id}:
+    get:
+      summary: Retrieve a specific review by ID
+      operationId: getReview
+      tags:
+        - Review
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Review retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+        '404':
+          description: Review not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    patch:
+      summary: Partially update a review
+      operationId: patchReview
+      tags:
+        - Review
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                rating:
+                  type: integer
+                  minimum: 1
+                  maximum: 5
+                  description: Rating (1-5)
+                content:
+                  type: string
+                  description: Review content
+      responses:
+        '200':
+          description: Review partially updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Review updated
+        '403':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Review not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      summary: Delete a review
+      operationId: deleteReview
+      tags:
+        - Review
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: Review deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Review deleted
+        '403':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Review not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /requests:
+    post:
+      summary: Create a new request
+      operationId: createRequest
+      tags:
+        - Request
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Request'
+      responses:
+        '201':
+          description: Request created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Request created
+                  id:
+                    type: integer
+                    description: The ID of the created request
+        '400':
+          description: Missing fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /requests/provider/{providerId}:
+    get:
+      summary: List all requests for a provider
+      operationId: listProviderRequests
+      tags:
+        - Request
+      parameters:
+        - name: providerId
+          in: path
+          required: true
+          schema:
+            type: integer
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: List of requests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Request'
+        '403':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /requests/client/{clientId}:
+    get:
+      summary: List all requests for a client
+      operationId: listClientRequests
+      tags:
+        - Request
+      parameters:
+        - name: clientId
+          in: path
+          required: true
+          schema:
+            type: integer
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: List of requests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Request'
+        '403':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /requests/{id}:
+    patch:
+      summary: Update the status of a request
+      operationId: updateRequestStatus
+      tags:
+        - Request
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [pending, accepted, declined, completed]
+                  description: Status of the request
+              required:
+                - status
+      responses:
+        '200':
+          description: Request status updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Status updated
+        '400':
+          description: Missing or invalid status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Request not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      summary: Delete a request
+      operationId: deleteRequest
+      tags:
+        - Request
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: Request deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Request deleted
+        '403':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Request not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /provider-diplomas:
+    get:
+      summary: List all diplomas for the authenticated provider
+      operationId: listProviderDiplomas
+      tags:
+        - Provider Diploma
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: List of diplomas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProviderDiploma'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      summary: Create a new diploma for the authenticated provider
+      operationId: createProviderDiploma
+      tags:
+        - Provider Diploma
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProviderDiploma'
+      responses:
+        '201':
+          description: Diploma created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Diplôme créé
+                  id:
+                    type: integer
+                    description: The ID of the created diploma
+        '400':
+          description: Missing fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /provider-diplomas/{id}:
+    get:
+      summary: Retrieve a specific diploma by ID
+      operationId: getProviderDiploma
+      tags:
+        - Provider Diploma
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: Diploma retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProviderDiploma'
+        '404':
+          description: Diploma not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    patch:
+      summary: Partially update a diploma
+      operationId: patchProviderDiploma
+      tags:
+        - Provider Diploma
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  description: Title of the diploma
+                institution:
+                  type: string
+                  description: Institution that awarded the diploma
+                description:
+                  type: string
+                  nullable: true
+                  description: Description of the diploma
+                startDate:
+                  type: string
+                  format: date
+                  nullable: true
+                  description: Start date of the diploma
+                endDate:
+                  type: string
+                  format: date
+                  nullable: true
+                  description: End date of the diploma
+      responses:
+        '200':
+          description: Diploma partially updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Diplôme mis à jour
+        '403':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Diploma not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      summary: Delete a diploma
+      operationId: deleteProviderDiploma
+      tags:
+        - Provider Diploma
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: Diploma deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Diplôme supprimé
+        '403':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Diploma not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+```

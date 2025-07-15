@@ -25,7 +25,7 @@ class BookingController
         if (!$booking || $booking->getClientId() !== $sessionClientId) {
             http_response_code(403);
             echo json_encode(['error' => 'Unauthorized or not found']);
-            return;
+            exit;
         }
 
         echo json_encode([
@@ -35,6 +35,7 @@ class BookingController
             'slotId' => $booking->getSlotId(),
             'createdAt' => $booking->getCreatedAt()->format('Y-m-d H:i:s'),
         ]);
+        exit;
     }
 
     // POST /bookings
@@ -50,7 +51,7 @@ class BookingController
         ) {
             http_response_code(400);
             echo json_encode(['error' => 'Missing fields']);
-            return;
+            exit;
         }
 
         $booking = new Booking(
@@ -63,6 +64,7 @@ class BookingController
 
         http_response_code(201);
         echo json_encode(['message' => 'Booking created', 'id' => $booking->getId()]);
+        exit;
     }
 
     // PUT /bookings/{id}
@@ -74,7 +76,7 @@ class BookingController
         if (!$booking || $booking->getClientId() !== $sessionClientId) {
             http_response_code(403);
             echo json_encode(['error' => 'Unauthorized or not found']);
-            return;
+            exit;
         }
 
         $data = json_decode(file_get_contents('php://input'), true);
@@ -82,7 +84,7 @@ class BookingController
         if (!isset($data['status']) || !isset($data['slotId'])) {
             http_response_code(400);
             echo json_encode(['error' => 'Missing fields for full update']);
-            return;
+            exit;
         }
 
         $booking->setStatus($data['status']);
@@ -91,6 +93,7 @@ class BookingController
         $this->bookingRepository->update($booking);
 
         echo json_encode(['message' => 'Booking updated']);
+        exit;
     }
 
     // PATCH /bookings/{id}
@@ -102,7 +105,7 @@ class BookingController
         if (!$booking || $booking->getClientId() !== $sessionClientId) {
             http_response_code(403);
             echo json_encode(['error' => 'Unauthorized or not found']);
-            return;
+            exit;
         }
 
         $data = json_decode(file_get_contents('php://input'), true);
@@ -118,6 +121,7 @@ class BookingController
         $this->bookingRepository->update($booking);
 
         echo json_encode(['message' => 'Booking patched']);
+        exit;
     }
 
     // DELETE /bookings/{id}
@@ -129,11 +133,12 @@ class BookingController
         if (!$booking || $booking->getClientId() !== $sessionClientId) {
             http_response_code(403);
             echo json_encode(['error' => 'Unauthorized or not found']);
-            return;
+            exit;
         }
 
         $this->bookingRepository->delete($id);
 
         echo json_encode(['message' => 'Booking deleted']);
+        exit;
     }
 }

@@ -24,7 +24,7 @@ class ProvidedServiceController
         if (!$service) {
             http_response_code(404);
             echo json_encode(['error' => 'Service not found']);
-            return;
+            exit;
         }
 
         echo json_encode([
@@ -36,6 +36,7 @@ class ProvidedServiceController
             'duration' => $service->getDuration(),
             'providerId' => $service->getProviderId(),
         ]);
+        exit;
     }
 
     // GET /providers/{providerId}/services
@@ -46,7 +47,7 @@ class ProvidedServiceController
         if ($providerId !== $sessionProviderId) {
             http_response_code(403);
             echo json_encode(['error' => 'Unauthorized']);
-            return;
+            exit;
         }
 
         $services = $this->serviceRepo->findByProviderId($providerId);
@@ -65,6 +66,7 @@ class ProvidedServiceController
         }
 
         echo json_encode($output);
+        exit;
     }
 
     // POST /providers/{providerId}/services
@@ -75,7 +77,7 @@ class ProvidedServiceController
         if ($providerId !== $sessionProviderId) {
             http_response_code(403);
             echo json_encode(['error' => 'Unauthorized']);
-            return;
+            exit;
         }
 
         $data = json_decode(file_get_contents('php://input'), true);
@@ -83,7 +85,7 @@ class ProvidedServiceController
         if (empty($data['title']) || empty($data['description']) || empty($data['duration'])) {
             http_response_code(400);
             echo json_encode(['error' => 'Missing fields']);
-            return;
+            exit;
         }
 
         $service = new ProvidedService(
@@ -99,6 +101,7 @@ class ProvidedServiceController
 
         http_response_code(201);
         echo json_encode(['message' => 'Service created', 'id' => $service->getId()]);
+        exit;
     }
 
     // PUT /provided-services/{id}
@@ -111,7 +114,7 @@ class ProvidedServiceController
         if (!$existing || $existing->getProviderId() !== $sessionProviderId) {
             http_response_code(403);
             echo json_encode(['error' => 'Unauthorized']);
-            return;
+            exit;
         }
 
         $data = json_decode(file_get_contents('php://input'), true);
@@ -122,7 +125,7 @@ class ProvidedServiceController
         ) {
             http_response_code(400);
             echo json_encode(['error' => 'Missing fields']);
-            return;
+            exit;
         }
 
         $existing->setTitle($data['title']);
@@ -134,6 +137,7 @@ class ProvidedServiceController
         $this->serviceRepo->update($existing);
 
         echo json_encode(['message' => 'Service updated']);
+        exit;
     }
 
     // PATCH /provided-services/{id}
@@ -146,7 +150,7 @@ class ProvidedServiceController
         if (!$existing || $existing->getProviderId() !== $sessionProviderId) {
             http_response_code(403);
             echo json_encode(['error' => 'Unauthorized']);
-            return;
+            exit;
         }
 
         $data = json_decode(file_get_contents('php://input'), true);
@@ -170,6 +174,7 @@ class ProvidedServiceController
         $this->serviceRepo->update($existing);
 
         echo json_encode(['message' => 'Service partially updated']);
+        exit;
     }
 
     // DELETE /provided-services/{id}
@@ -182,11 +187,12 @@ class ProvidedServiceController
         if (!$existing || $existing->getProviderId() !== $sessionProviderId) {
             http_response_code(403);
             echo json_encode(['error' => 'Unauthorized']);
-            return;
+            exit;
         }
 
         $this->serviceRepo->delete($id);
 
         echo json_encode(['message' => 'Service deleted']);
+        exit;
     }
 }

@@ -24,6 +24,7 @@ class ReviewController
         $data = array_map(fn($review) => $this->serialize($review), $reviews);
 
         echo json_encode($data);
+        exit;
     }
 
     // POST /reviews
@@ -40,7 +41,7 @@ class ReviewController
         ) {
             http_response_code(400);
             echo json_encode(['error' => 'Missing fields']);
-            return;
+            exit;
         }
 
         $review = new Review(
@@ -54,6 +55,7 @@ class ReviewController
 
         http_response_code(201);
         echo json_encode(['message' => 'Review created', 'id' => $review->getId()]);
+        exit;
     }
 
     // GET /reviews/{id}
@@ -64,10 +66,11 @@ class ReviewController
         if (!$review) {
             http_response_code(404);
             echo json_encode(['error' => 'Review not found']);
-            return;
+            exit;
         }
 
         echo json_encode($this->serialize($review));
+        exit;
     }
 
     // PATCH /reviews/{id}
@@ -79,7 +82,7 @@ class ReviewController
         if (!$review || $review->getClientId() !== $clientId) {
             http_response_code(403);
             echo json_encode(['error' => 'Unauthorized']);
-            return;
+            exit;
         }
 
         $data = json_decode(file_get_contents('php://input'), true);
@@ -95,6 +98,7 @@ class ReviewController
         $this->reviewRepo->update($review);
 
         echo json_encode(['message' => 'Review updated']);
+        exit;
     }
 
     // DELETE /reviews/{id}
@@ -106,11 +110,12 @@ class ReviewController
         if (!$review || $review->getClientId() !== $clientId) {
             http_response_code(403);
             echo json_encode(['error' => 'Unauthorized']);
-            return;
+            exit;
         }
 
         $this->reviewRepo->delete($id);
         echo json_encode(['message' => 'Review deleted']);
+        exit;
     }
 
     // Private
