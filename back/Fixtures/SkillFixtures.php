@@ -1,70 +1,124 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Soosuuke\IaPlatform\Fixtures;
 
-use Soosuuke\IaPlatform\Entity\Skill;
-use Soosuuke\IaPlatform\Repository\SkillRepository;
+use Soosuuke\IaPlatform\Config\Database;
+use Soosuuke\IaPlatform\Entity\SoftSkill;
+use Soosuuke\IaPlatform\Entity\HardSkill;
+use Soosuuke\IaPlatform\Repository\SoftSkillRepository;
+use Soosuuke\IaPlatform\Repository\HardSkillRepository;
 
 class SkillFixtures
 {
-    private static array $initialSkills = [
-        'Machine Learning',
-        'Data Analysis',
-        'Computer Vision',
-        'Chatbot Development',
-        'Prompt Engineering',
-        'Python',
-        'Cloud AI Services',
-        'Natural Language Processing',
-        'Deep Learning',
-        'Data Engineering',
-        'Speech Recognition',
-        'Reinforcement Learning',
-        'MLOps',
-    ];
+    private \PDO $pdo;
+    private SoftSkillRepository $softSkillRepository;
+    private HardSkillRepository $hardSkillRepository;
 
-    /**
-     * Charge les compétences initiales et les retourne.
-     *
-     * @return Skill[] Liste des compétences chargées
-     */
-    public static function load(): array
+    public function __construct()
     {
-        $repo = new SkillRepository();
-        $skills = [];
-
-        foreach (self::$initialSkills as $name) {
-            $skill = new Skill($name);
-            $repo->save($skill);
-            $skills[] = $skill;
-        }
-
-        return $skills;
+        $this->pdo = Database::connect();
+        $this->softSkillRepository = new SoftSkillRepository();
+        $this->hardSkillRepository = new HardSkillRepository();
     }
 
-    /**
-     * Ajoute une nouvelle compétence dynamiquement.
-     *
-     * @param string $name Nom de la nouvelle compétence
-     * @return Skill La compétence ajoutée
-     * @throws \Exception Si le nom est vide
-     */
-    public static function addSkill(string $name): Skill
+    public function load(): void
     {
-        if (empty(trim($name))) {
-            throw new \Exception('Le nom de la compétence ne peut pas être vide.');
+        echo "Chargement des fixtures Skills...\n";
+
+        // Soft Skills (compétences comportementales)
+        $softSkills = [
+            'Communication',
+            'Leadership',
+            'Travail d\'équipe',
+            'Résolution de problèmes',
+            'Adaptabilité',
+            'Créativité',
+            'Gestion du temps',
+            'Empathie',
+            'Négociation',
+            'Pensée critique'
+        ];
+
+        // Hard Skills (compétences techniques) depuis le JSON
+        $hardSkills = [
+            'CUDA',
+            'TensorFlow',
+            'PyTorch',
+            'JAX',
+            'Keras',
+            'MXNet',
+            'Caffe',
+            'ONNX',
+            'TensorRT',
+            'HuggingFace Transformers',
+            'BERT',
+            'GPT',
+            'CNN',
+            'RNN',
+            'LSTM',
+            'GRU',
+            'Transformer',
+            'Attention Mechanisms',
+            'Computer Vision',
+            'Object Detection',
+            'Image Segmentation',
+            'GANs',
+            'Reinforcement Learning',
+            'Q-Learning',
+            'Policy Gradient',
+            'Deep RL',
+            'RLHF',
+            'Traitement du langage naturel',
+            'Text Classification',
+            'Named Entity Recognition',
+            'Machine Translation',
+            'Speech Recognition',
+            'Audio Processing',
+            'Time Series Forecasting',
+            'Recommendation Systems',
+            'Anomaly Detection',
+            'Graph Neural Networks',
+            'Distributed Training',
+            'Data Parallelism',
+            'Horovod',
+            'DeepSpeed',
+            'LoRA',
+            'Quantization',
+            'Pruning',
+            'Model Compression',
+            'Explainable AI',
+            'AutoML',
+            'Hyperparameter Tuning',
+            'Bayesian Optimization',
+            'MLOps',
+            'Kubeflow',
+            'MLflow',
+            'Apache Airflow',
+            'Spark MLlib',
+            'Dask',
+            'NVIDIA Triton Inference Server',
+            'Edge AI',
+            'Federated Learning',
+            'Differential Privacy',
+            'Synthetic Data Generation'
+        ];
+
+        // Créer les Soft Skills
+        foreach ($softSkills as $skillName) {
+            $softSkill = new SoftSkill($skillName);
+            $this->softSkillRepository->save($softSkill);
+            echo "Soft Skill créé : $skillName\n";
         }
 
-        $repo = new SkillRepository();
-        $skill = new Skill($name);
-
-        // Vérifie si la compétence existe déjà
-        if (!$repo->findByName($name)) {
-            $repo->save($skill);
-        } else {
-            $skill = $repo->findByName($name);
+        // Créer les Hard Skills
+        foreach ($hardSkills as $skillName) {
+            $hardSkill = new HardSkill($skillName);
+            $this->hardSkillRepository->save($hardSkill);
+            echo "Hard Skill créé : $skillName\n";
         }
 
-        return $skill;
+        echo "✅ Fixtures Skills chargées avec succès.\n";
     }
 }

@@ -1,0 +1,82 @@
+[
+  {
+    "articleSectionId": 1,
+    "articleId": 1,
+    "title": "Introduction à DeepEP"
+  },
+  {
+    "articleSectionId": 2,
+    "articleId": 1,
+    "title": "Installation"
+  },
+  {
+    "articleSectionId": 3,
+    "articleId": 1,
+    "title": "Utilisation de base"
+  },
+  {
+    "articleSectionId": 4,
+    "articleId": 1,
+    "title": "Avantages"
+  },
+  {
+    "articleSectionId": 5,
+    "articleId": 2,
+    "title": "Révolution GPU dans la santé"
+  },
+  {
+    "articleSectionId": 6,
+    "articleId": 2,
+    "title": "Applications médicales"
+  },
+  {
+    "articleSectionId": 7,
+    "articleId": 2,
+    "title": "Exemple de pipeline"
+  },
+  {
+    "articleSectionId": 8,
+    "articleId": 3,
+    "title": "L'avenir de l'IA"
+  },
+  {
+    "articleSectionId": 9,
+    "articleId": 3,
+    "title": "Technologies émergentes"
+  },
+  {
+    "articleSectionId": 10,
+    "articleId": 3,
+    "title": "Impact sur l'industrie"
+  },
+  {
+    "articleSectionId": 11,
+    "articleId": 4,
+    "title": "NVIDIA pour l'infrastructure de demain"
+  },
+  {
+    "articleSectionId": 12,
+    "articleId": 4,
+    "title": "Contexte"
+  },
+  {
+    "articleSectionId": 13,
+    "articleId": 4,
+    "title": "Les piliers de la stratégie NVIDIA"
+  },
+  {
+    "articleSectionId": 14,
+    "articleId": 4,
+    "title": "Cas d'usage"
+  },
+  {
+    "articleSectionId": 15,
+    "articleId": 4,
+    "title": "Conclusion"
+  },
+  {
+    "articleSectionId": 16,
+    "articleId": 4,
+    "title": "Pour aller plus loin"
+  }
+]

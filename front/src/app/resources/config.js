@@ -5,8 +5,12 @@ const routes = {
   "/": true,
   "/about": true,
   "/work": true,
+  "/services": true,
   "/blog": true,
-  "/gallery": true,
+  "/login": true,
+  "/signup": true,
+  "/provider-dashboard": true,
+  "/client-dashboard": true,
 };
 
 // Enable password protection on selected routes

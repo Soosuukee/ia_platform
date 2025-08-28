@@ -1,0 +1,32 @@
+[
+  {
+    "id": 1,
+    "admin_id": 1,
+    "slug": "admin-super-k8901234567",
+    "firstName": "Super",
+    "lastName": "Admin",
+    "email": "admin@skai.com",
+    "avatar": "/images/avatar.jpg",
+    "role": "Super Administrateur",
+    "permissions": ["all"],
+    "location": "Europe/Paris",
+    "languages": ["Français", "Anglais"],
+    "created_at": "2024-01-01T00:00:00Z",
+    "last_login": "2024-01-15T11:00:00Z"
+  },
+  {
+    "id": 2,
+    "admin_id": 2,
+    "slug": "admin-support-l9012345678",
+    "firstName": "Support",
+    "lastName": "Team",
+    "email": "support@skai.com",
+    "avatar": "/images/avatar.jpg",
+    "role": "Support Administrateur",
+    "permissions": ["users", "clients", "providers"],
+    "location": "Europe/Paris",
+    "languages": ["Français", "Anglais"],
+    "created_at": "2024-01-05T00:00:00Z",
+    "last_login": "2024-01-18T14:30:00Z"
+  }
+]

@@ -40,6 +40,17 @@ class ClientRepository
         return $data ? $this->mapToClient($data) : null;
     }
 
+    public function findBySlug(string $slug): ?Client
+    {
+        $stmt = $this->pdo->prepare('SELECT * FROM client WHERE slug = ?');
+        if (!$stmt->execute([$slug])) {
+            throw new \RuntimeException("Failed to fetch client with slug $slug");
+        }
+        $data = $stmt->fetch();
+
+        return $data ? $this->mapToClient($data) : null;
+    }
+
     public function findAll(): array
     {
         $stmt = $this->pdo->query('SELECT * FROM client');
@@ -55,8 +66,8 @@ class ClientRepository
     public function save(Client $client): void
     {
         $stmt = $this->pdo->prepare('
-            INSERT INTO client (first_name, last_name, email, password, role, country, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO client (first_name, last_name, email, password, country_id, city, state, postal_code, address, profile_picture, joined_at, slug)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ');
 
         if (!$stmt->execute([
@@ -64,9 +75,14 @@ class ClientRepository
             $client->getLastName(),
             $client->getEmail(),
             $client->getPassword(),
-            $client->getRole(),
-            $client->getCountry(),
-            $client->getCreatedAt()->format('Y-m-d H:i:s'),
+            $client->getCountryId(),
+            $client->getCity(),
+            $client->getState(),
+            $client->getPostalCode(),
+            $client->getAddress(),
+            $client->getProfilePicture(),
+            $client->getJoinedAt()->format('Y-m-d H:i:s'),
+            $client->getSlug(),
         ])) {
             throw new \RuntimeException('Failed to save client');
         }
@@ -81,7 +97,7 @@ class ClientRepository
     {
         $stmt = $this->pdo->prepare('
             UPDATE client
-            SET first_name = ?, last_name = ?, email = ?, password = ?, country = ?
+            SET first_name = ?, last_name = ?, email = ?, password = ?, country_id = ?, city = ?, state = ?, postal_code = ?, address = ?, profile_picture = ?, slug = ?
             WHERE id = ?
         ');
 
@@ -90,7 +106,13 @@ class ClientRepository
             $client->getLastName(),
             $client->getEmail(),
             $client->getPassword(),
-            $client->getCountry(),
+            $client->getCountryId(),
+            $client->getCity(),
+            $client->getState(),
+            $client->getPostalCode(),
+            $client->getAddress(),
+            $client->getProfilePicture(),
+            $client->getSlug(),
             $client->getId(),
         ])) {
             throw new \RuntimeException("Failed to update client with ID {$client->getId()}");
@@ -120,7 +142,13 @@ class ClientRepository
             $data['last_name'],
             $data['email'],
             $data['password'],
-            $data['country']
+            (int) $data['country_id'],
+            $data['city'],
+            $data['profile_picture'] ?? null,
+            $data['slug'] ?? null,
+            $data['state'] ?? null,
+            $data['postal_code'] ?? null,
+            $data['address'] ?? null
         );
 
         $ref = new ReflectionClass(Client::class);
@@ -129,9 +157,9 @@ class ClientRepository
         $idProp->setAccessible(true);
         $idProp->setValue($client, (int) $data['id']);
 
-        $createdAtProp = $ref->getProperty('createdAt');
-        $createdAtProp->setAccessible(true);
-        $createdAtProp->setValue($client, new DateTimeImmutable($data['created_at']));
+        $joinedAtProp = $ref->getProperty('joinedAt');
+        $joinedAtProp->setAccessible(true);
+        $joinedAtProp->setValue($client, new DateTimeImmutable($data['joined_at']));
 
         return $client;
     }

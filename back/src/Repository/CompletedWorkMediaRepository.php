@@ -56,10 +56,10 @@ class CompletedWorkMediaRepository
     public function update(CompletedWorkMedia $media): void
     {
         $stmt = $this->pdo->prepare('
-        UPDATE completed_work_media
-        SET media_type = ?, media_url = ?
-        WHERE id = ?
-    ');
+            UPDATE completed_work_media
+            SET media_type = ?, media_url = ?
+            WHERE id = ?
+        ');
 
         $stmt->execute([
             $media->getMediaType(),
@@ -72,6 +72,12 @@ class CompletedWorkMediaRepository
     {
         $stmt = $this->pdo->prepare('DELETE FROM completed_work_media WHERE id = ?');
         $stmt->execute([$id]);
+    }
+
+    public function deleteByWorkId(int $workId): void
+    {
+        $stmt = $this->pdo->prepare('DELETE FROM completed_work_media WHERE work_id = ?');
+        $stmt->execute([$workId]);
     }
 
     private function mapToMedia(array $data): CompletedWorkMedia

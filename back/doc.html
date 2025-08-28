@@ -1,0 +1,208 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Documentation API - IaPlatform</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background-color: #f7f7f7; }
+        h1 { color: #333; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; }
+        th, td { border: 1px solid #ccc; padding: 10px; text-align: left; }
+        th { background-color: #eee; }
+        code { background: #f0f0f0; padding: 2px 4px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <h1>Documentation des routes API – IaPlatform</h1>
+    <p>Ce document liste les endpoints disponibles dans le fichier <code>routes.php</code>.</p>
+    <table>
+        <thead>
+            <tr>
+                <th>Méthode</th>
+                <th>URL</th>
+                <th>Contrôleur</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+
+        <tr>
+            <td><code>GET</code></td>
+            <td><code>/provided-services</code></td>
+            <td>providedService</td>
+            <td>index</td>
+        </tr>
+    
+        <tr>
+            <td><code>GET</code></td>
+            <td><code>/provided-services/{id}</code></td>
+            <td>providedService</td>
+            <td>show</td>
+        </tr>
+    
+        <tr>
+            <td><code>POST</code></td>
+            <td><code>/provided-services</code></td>
+            <td>providedService</td>
+            <td>store</td>
+        </tr>
+    
+        <tr>
+            <td><code>PUT</code></td>
+            <td><code>/provided-services/{id}</code></td>
+            <td>providedService</td>
+            <td>update</td>
+        </tr>
+    
+        <tr>
+            <td><code>PATCH</code></td>
+            <td><code>/provided-services/{id}</code></td>
+            <td>providedService</td>
+            <td>partialUpdate</td>
+        </tr>
+    
+        <tr>
+            <td><code>DELETE</code></td>
+            <td><code>/provided-services/{id}</code></td>
+            <td>providedService</td>
+            <td>delete</td>
+        </tr>
+    
+        <tr>
+            <td><code>GET</code></td>
+            <td><code>/provider-diplomas</code></td>
+            <td>providerDiploma</td>
+            <td>index</td>
+        </tr>
+    
+        <tr>
+            <td><code>GET</code></td>
+            <td><code>/provider-diplomas/{id}</code></td>
+            <td>providerDiploma</td>
+            <td>show</td>
+        </tr>
+    
+        <tr>
+            <td><code>POST</code></td>
+            <td><code>/provider-diplomas</code></td>
+            <td>providerDiploma</td>
+            <td>store</td>
+        </tr>
+    
+        <tr>
+            <td><code>PATCH</code></td>
+            <td><code>/provider-diplomas/{id}</code></td>
+            <td>providerDiploma</td>
+            <td>patch</td>
+        </tr>
+    
+        <tr>
+            <td><code>DELETE</code></td>
+            <td><code>/provider-diplomas/{id}</code></td>
+            <td>providerDiploma</td>
+            <td>destroy</td>
+        </tr>
+    
+        <tr>
+            <td><code>GET</code></td>
+            <td><code>/providers/{providerId}/reviews</code></td>
+            <td>review</td>
+            <td>indexByProvider</td>
+        </tr>
+    
+        <tr>
+            <td><code>GET</code></td>
+            <td><code>/reviews/{id}</code></td>
+            <td>review</td>
+            <td>show</td>
+        </tr>
+    
+        <tr>
+            <td><code>POST</code></td>
+            <td><code>/reviews</code></td>
+            <td>review</td>
+            <td>store</td>
+        </tr>
+    
+        <tr>
+            <td><code>PATCH</code></td>
+            <td><code>/reviews/{id}</code></td>
+            <td>review</td>
+            <td>patch</td>
+        </tr>
+    
+        <tr>
+            <td><code>DELETE</code></td>
+            <td><code>/reviews/{id}</code></td>
+            <td>review</td>
+            <td>destroy</td>
+        </tr>
+    
+        <tr>
+            <td><code>GET</code></td>
+            <td><code>/providers/{providerId}/skills</code></td>
+            <td>providerSkill</td>
+            <td>list</td>
+        </tr>
+    
+        <tr>
+            <td><code>POST</code></td>
+            <td><code>/providers/{providerId}/skills</code></td>
+            <td>providerSkill</td>
+            <td>assign</td>
+        </tr>
+    
+        <tr>
+            <td><code>DELETE</code></td>
+            <td><code>/providers/{providerId}/skills/{skillId}</code></td>
+            <td>providerSkill</td>
+            <td>remove</td>
+        </tr>
+    
+        <tr>
+            <td><code>POST</code></td>
+            <td><code>/requests</code></td>
+            <td>request</td>
+            <td>store</td>
+        </tr>
+    
+        <tr>
+            <td><code>GET</code></td>
+            <td><code>/requests/provider/{providerId}</code></td>
+            <td>request</td>
+            <td>getByProvider</td>
+        </tr>
+    
+        <tr>
+            <td><code>GET</code></td>
+            <td><code>/requests/client/{clientId}</code></td>
+            <td>request</td>
+            <td>getByClient</td>
+        </tr>
+    
+        <tr>
+            <td><code>PATCH</code></td>
+            <td><code>/requests/{id}</code></td>
+            <td>request</td>
+            <td>updateStatus</td>
+        </tr>
+    
+        <tr>
+            <td><code>DELETE</code></td>
+            <td><code>/requests/{id}</code></td>
+            <td>request</td>
+            <td>destroy</td>
+        </tr>
+    
+        <tr>
+            <td><code>GET</code></td>
+            <td><code>/</code></td>
+            <td>N/A</td>
+            <td>message d’accueil</td>
+        </tr>
+    
+        </tbody>
+    </table>
+</body>
+</html>

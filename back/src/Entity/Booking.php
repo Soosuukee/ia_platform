@@ -5,18 +5,19 @@ declare(strict_types=1);
 namespace Soosuuke\IaPlatform\Entity;
 
 use DateTimeImmutable;
+use Soosuuke\IaPlatform\Entity\Enum\BookingStatus;
 
 class Booking
 {
     private int $id;
-    private string $status; // pending, accepted, declined
+    private BookingStatus $status;
     private int $clientId;
     private int $slotId;
     private DateTimeImmutable $createdAt;
 
     public function __construct(string $status, int $clientId, int $slotId)
     {
-        $this->status = $status;
+        $this->status = BookingStatus::fromString($status);
         $this->clientId = $clientId;
         $this->slotId = $slotId;
         $this->createdAt = new DateTimeImmutable();
@@ -30,7 +31,7 @@ class Booking
 
     public function getStatus(): string
     {
-        return $this->status;
+        return $this->status->value;
     }
 
     public function getClientId(): int
@@ -51,21 +52,6 @@ class Booking
     // Setters
     public function setStatus(string $status): void
     {
-        $this->status = $status;
-    }
-
-    public function setClientId(int $clientId): void
-    {
-        $this->clientId = $clientId;
-    }
-
-    public function setSlotId(int $slotId): void
-    {
-        $this->slotId = $slotId;
-    }
-
-    public function setCreatedAt(DateTimeImmutable $createdAt): void
-    {
-        $this->createdAt = $createdAt;
+        $this->status = BookingStatus::fromString($status);
     }
 }

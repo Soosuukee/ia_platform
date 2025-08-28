@@ -1,0 +1,110 @@
+[
+  {
+    "serviceImageId": 1,
+    "serviceContentId": 1,
+    "imageUrl": "/images/services/keynote/cover-01.jpg",
+    "altText": "Conférences et keynotes sur l'IA",
+    "caption": "Présentations captivantes sur l'IA et le GPU computing",
+    "aspectRatio": "16/9",
+    "order": 1
+  },
+  {
+    "serviceImageId": 2,
+    "serviceContentId": 5,
+    "imageUrl": "/images/services/accelerator/cover-01.jpg",
+    "altText": "Conseil stratégique IA",
+    "caption": "Accompagnement stratégique en intelligence artificielle",
+    "aspectRatio": "16/9",
+    "order": 1
+  },
+  {
+    "serviceImageId": 3,
+    "serviceContentId": 6,
+    "imageUrl": "/images/tech/cuda.jpg",
+    "altText": "Optimisation GPU",
+    "caption": "Optimisation des performances GPU pour l'IA",
+    "aspectRatio": "16/9",
+    "order": 2
+  },
+  {
+    "serviceImageId": 4,
+    "serviceContentId": 8,
+    "imageUrl": "/images/services/accelerator/cover-02.jpg",
+    "altText": "Programme d'accélération startups",
+    "caption": "Accélération de la croissance des startups IA",
+    "aspectRatio": "16/9",
+    "order": 1
+  },
+  {
+    "serviceImageId": 5,
+    "serviceContentId": 11,
+    "imageUrl": "/images/services/ia-gpu/cover-01.jpg",
+    "altText": "Développement de modèles ML",
+    "caption": "Développement de modèles de machine learning sur mesure",
+    "aspectRatio": "16/9",
+    "order": 1
+  },
+  {
+    "serviceImageId": 6,
+    "serviceContentId": 12,
+    "imageUrl": "/images/tech/dgx-station.jpg",
+    "altText": "Technologies ML avancées",
+    "caption": "Utilisation des technologies les plus avancées",
+    "aspectRatio": "16/9",
+    "order": 2
+  },
+  {
+    "serviceImageId": 7,
+    "serviceContentId": 14,
+    "imageUrl": "/images/services/ia-gpu/cover-02.jpg",
+    "altText": "Optimisation d'algorithmes",
+    "caption": "Optimisation des performances algorithmiques",
+    "aspectRatio": "16/9",
+    "order": 1
+  },
+  {
+    "serviceImageId": 8,
+    "serviceContentId": 17,
+    "imageUrl": "/images/services/ia-gpu/cover-03.jpg",
+    "altText": "Analyse de données avancée",
+    "caption": "Extraction d'insights précieux de vos données",
+    "aspectRatio": "16/9",
+    "order": 1
+  },
+  {
+    "serviceImageId": 9,
+    "serviceContentId": 20,
+    "imageUrl": "/images/services/accelerator/cover-03.jpg",
+    "altText": "Recherche en IA innovante",
+    "caption": "Exploration des frontières de l'intelligence artificielle",
+    "aspectRatio": "16/9",
+    "order": 1
+  },
+  {
+    "serviceImageId": 10,
+    "serviceContentId": 23,
+    "imageUrl": "/images/services/ia-gpu/cover-01.jpg",
+    "altText": "Vision par ordinateur",
+    "caption": "Solutions de vision par ordinateur avancées",
+    "aspectRatio": "16/9",
+    "order": 1
+  },
+  {
+    "serviceImageId": 11,
+    "serviceContentId": 26,
+    "imageUrl": "/images/services/ia-gpu/cover-02.jpg",
+    "altText": "Deep Learning spécialisé",
+    "caption": "Expertise en deep learning et architectures neurales",
+    "aspectRatio": "16/9",
+    "order": 1
+  },
+  {
+    "serviceImageId": 12,
+    "serviceContentId": 27,
+    "imageUrl": "/images/tech/blackwell-die.png",
+    "altText": "Architectures neurales",
+    "caption": "Architectures neurales spécialisées et avancées",
+    "aspectRatio": "16/9",
+    "order": 2
+  }
+]

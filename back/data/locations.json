@@ -1,0 +1,42 @@
+[
+  {
+    "locationId": 1,
+    "name": "France"
+  },
+  {
+    "locationId": 2,
+    "name": "États-Unis"
+  },
+  {
+    "locationId": 3,
+    "name": "Canada"
+  },
+  {
+    "locationId": 4,
+    "name": "Royaume-Uni"
+  },
+  {
+    "locationId": 5,
+    "name": "Allemagne"
+  },
+  {
+    "locationId": 6,
+    "name": "Suisse"
+  },
+  {
+    "locationId": 7,
+    "name": "Belgique"
+  },
+  {
+    "locationId": 8,
+    "name": "Luxembourg"
+  },
+  {
+    "locationId": 9,
+    "name": "Singapour"
+  },
+  {
+    "locationId": 10,
+    "name": "Japon"
+  }
+]

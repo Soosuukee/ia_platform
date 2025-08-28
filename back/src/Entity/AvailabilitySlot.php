@@ -16,10 +16,23 @@ class AvailabilitySlot
 
     public function __construct(int $providerId, DateTimeImmutable $startTime, DateTimeImmutable $endTime, bool $isBooked = false)
     {
+        $this->validateTimes($startTime, $endTime);
+
         $this->providerId = $providerId;
         $this->startTime = $startTime;
         $this->endTime = $endTime;
         $this->isBooked = $isBooked;
+    }
+
+    private function validateTimes(DateTimeImmutable $startTime, DateTimeImmutable $endTime): void
+    {
+        if ($startTime >= $endTime) {
+            throw new \InvalidArgumentException('L\'heure de début doit être antérieure à l\'heure de fin');
+        }
+
+        if ($startTime < new DateTimeImmutable()) {
+            throw new \InvalidArgumentException('L\'heure de début ne peut pas être dans le passé');
+        }
     }
 
     // Getters
@@ -49,18 +62,17 @@ class AvailabilitySlot
     }
 
     // Setters
-    public function setProviderId(int $providerId): void
-    {
-        $this->providerId = $providerId;
-    }
+
 
     public function setStartTime(DateTimeImmutable $startTime): void
     {
+        $this->validateTimes($startTime, $this->endTime);
         $this->startTime = $startTime;
     }
 
     public function setEndTime(DateTimeImmutable $endTime): void
     {
+        $this->validateTimes($this->startTime, $endTime);
         $this->endTime = $endTime;
     }
 

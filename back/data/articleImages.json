@@ -1,0 +1,11 @@
+[
+  {
+    "articleImageId": 1,
+    "articleContentId": 12,
+    "imageUrl": "/images/blog/infrastructure/nvidia-infrastructure.png",
+    "altText": "NVIDIA infrastructure cloud hybride",
+    "caption": "Architecture NVIDIA pour l'infrastructure cloud hybride",
+    "aspectRatio": "16/9",
+    "order": 1
+  }
+]

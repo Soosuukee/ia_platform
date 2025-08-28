@@ -25,27 +25,22 @@ class ProviderRepository
         $stmt->execute([$id]);
         $data = $stmt->fetch();
 
-        if (!$data) {
-            return null;
-        }
-
-        $provider = $this->mapToProvider($data);
-
-        // On hydrate avec les skills
-        $skillRepo = new ProviderSkillRepository();
-        $provider->setSkills($skillRepo->findAllSkillsByProviderId($provider->getId()));
-
-        // On hydrate avec les créneaux
-        $slotRepo = new AvailabilitySlotRepository();
-        $provider->setAvailabilitySlots($slotRepo->findAllByProviderId($provider->getId()));
-
-        return $provider;
+        return $data ? $this->mapToProvider($data) : null;
     }
 
     public function findByEmail(string $email): ?Provider
     {
         $stmt = $this->pdo->prepare('SELECT * FROM `provider` WHERE email = ?');
         $stmt->execute([$email]);
+        $data = $stmt->fetch();
+
+        return $data ? $this->mapToProvider($data) : null;
+    }
+
+    public function findBySlug(string $slug): ?Provider
+    {
+        $stmt = $this->pdo->prepare('SELECT * FROM `provider` WHERE slug = ?');
+        $stmt->execute([$slug]);
         $data = $stmt->fetch();
 
         return $data ? $this->mapToProvider($data) : null;
@@ -67,11 +62,9 @@ class ProviderRepository
     {
         $stmt = $this->pdo->prepare('
             INSERT INTO `provider` (
-                first_name, last_name,
-                email, password, country, profile_picture, role,
-                title, presentation,
-                created_at, social_links
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                first_name, last_name, email, password, country_id, city, state, postal_code, address,
+                profile_picture, joined_at, slug
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ');
 
         $stmt->execute([
@@ -79,13 +72,14 @@ class ProviderRepository
             $provider->getLastName(),
             $provider->getEmail(),
             $provider->getPassword(),
-            $provider->getCountry(),
+            $provider->getCountryId(),
+            $provider->getCity(),
+            $provider->getState(),
+            $provider->getPostalCode(),
+            $provider->getAddress(),
             $provider->getProfilePicture(),
-            $provider->getRole(),
-            $provider->getTitle(),
-            $provider->getPresentation(),
-            $provider->getCreatedAt()->format('Y-m-d H:i:s'),
-            json_encode($provider->getSocialLinks())
+            $provider->getJoinedAt()->format('Y-m-d H:i:s'),
+            $provider->getSlug()
         ]);
 
         $providerId = (int) $this->pdo->lastInsertId();
@@ -94,11 +88,6 @@ class ProviderRepository
         $idProp = $ref->getProperty('id');
         $idProp->setAccessible(true);
         $idProp->setValue($provider, $providerId);
-
-        $slotRepo = new AvailabilitySlotRepository();
-        foreach ($provider->getAvailabilitySlots() as $slot) {
-            $slotRepo->saveForProvider($providerId, $slot);
-        }
     }
 
     public function update(Provider $provider): void
@@ -109,12 +98,13 @@ class ProviderRepository
                 last_name = ?,
                 email = ?,
                 password = ?,
-                country = ?,
+                country_id = ?,
+                city = ?,
+                state = ?,
+                postal_code = ?,
+                address = ?,
                 profile_picture = ?,
-                role = ?,
-                title = ?,
-                presentation = ?,
-                social_links = ?
+                slug = ?
             WHERE id = ?
         ');
 
@@ -123,12 +113,13 @@ class ProviderRepository
             $provider->getLastName(),
             $provider->getEmail(),
             $provider->getPassword(),
-            $provider->getCountry(),
+            $provider->getCountryId(),
+            $provider->getCity(),
+            $provider->getState(),
+            $provider->getPostalCode(),
+            $provider->getAddress(),
             $provider->getProfilePicture(),
-            $provider->getRole(),
-            $provider->getTitle(),
-            $provider->getPresentation(),
-            json_encode($provider->getSocialLinks()),
+            $provider->getSlug(),
             $provider->getId()
         ]);
     }
@@ -158,22 +149,18 @@ class ProviderRepository
 
     private function mapToProvider(array $data): Provider
     {
-        // Décoder les liens sociaux depuis la base
-        $socialLinks = isset($data['social_links']) && $data['social_links']
-            ? json_decode($data['social_links'], true)
-            : [];
-
         $provider = new Provider(
             $data['first_name'],
             $data['last_name'],
             $data['email'],
             $data['password'],
-            $data['title'],
-            $data['presentation'],
-            $data['country'],
-            $data['profile_picture'],
-            $data['role'] ?? 'provider',
-            $socialLinks
+            (int) $data['country_id'],
+            $data['city'],
+            $data['profile_picture'] ?? null,
+            $data['slug'] ?? null,
+            $data['state'] ?? null,
+            $data['postal_code'] ?? null,
+            $data['address'] ?? null
         );
 
         $ref = new ReflectionClass(Provider::class);
@@ -182,9 +169,9 @@ class ProviderRepository
         $idProp->setAccessible(true);
         $idProp->setValue($provider, (int) $data['id']);
 
-        $createdAtProp = $ref->getProperty('createdAt');
-        $createdAtProp->setAccessible(true);
-        $createdAtProp->setValue($provider, new DateTimeImmutable($data['created_at']));
+        $joinedAtProp = $ref->getProperty('joinedAt');
+        $joinedAtProp->setAccessible(true);
+        $joinedAtProp->setValue($provider, new DateTimeImmutable($data['joined_at']));
 
         return $provider;
     }

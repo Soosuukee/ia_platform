@@ -1,0 +1,62 @@
+[
+  {
+    "experienceId": 1,
+    "providerId": 1,
+    "jobTitle": "CEO & Founder",
+    "companyName": "NVIDIA",
+    "description": "Fondateur et CEO de NVIDIA, pionnier de l'IA et du GPU computing. Dirige la stratégie globale de l'entreprise et l'innovation technologique.",
+    "task1": "Développement de l'architecture GPU révolutionnaire",
+    "task2": "Expansion internationale et acquisitions stratégiques",
+    "startDate": "1993-01-01T00:00:00Z",
+    "endDate": null,
+    "experienceImage": "/images/companies/nvidia-logo.png"
+  },
+  {
+    "experienceId": 2,
+    "providerId": 1,
+    "jobTitle": "Ingénieur Senior",
+    "companyName": "LSI Logic",
+    "description": "Développement de puces graphiques et de processeurs spécialisés pour le marché professionnel.",
+    "task1": "Conception de circuits intégrés haute performance",
+    "task2": "Optimisation des architectures de processeurs",
+    "startDate": "1990-01-01",
+    "endDate": "1992-12-31",
+    "experienceImage": "/images/companies/lsi-logic-logo.png"
+  },
+  {
+    "experienceId": 3,
+    "providerId": 2,
+    "jobTitle": "AI Researcher & Educator",
+    "companyName": "deeplearning.ai",
+    "description": "Chercheur en IA et fondateur de deeplearning.ai, spécialisé dans l'éducation et la recherche en machine learning.",
+    "task1": "Développement de cours en ligne sur le deep learning",
+    "task2": "Recherche sur les réseaux de neurones",
+    "startDate": "2017-01-01",
+    "endDate": null,
+    "experienceImage": "/images/companies/deeplearning-ai-logo.png"
+  },
+  {
+    "experienceId": 4,
+    "providerId": 2,
+    "jobTitle": "Chief Scientist",
+    "companyName": "Baidu",
+    "description": "Responsable scientifique de Baidu, leader de la recherche en IA pour le plus grand moteur de recherche chinois.",
+    "task1": "Direction de l'équipe de recherche en IA",
+    "task2": "Développement d'algorithmes de reconnaissance vocale",
+    "startDate": "2014-01-01",
+    "endDate": "2017-12-31",
+    "experienceImage": "/images/companies/baidu-logo.png"
+  },
+  {
+    "experienceId": 5,
+    "providerId": 2,
+    "jobTitle": "Co-fondateur",
+    "companyName": "Coursera",
+    "description": "Co-fondateur de Coursera, plateforme d'éducation en ligne qui a révolutionné l'apprentissage à distance.",
+    "task1": "Développement de la plateforme d'apprentissage en ligne",
+    "task2": "Création de partenariats avec les universités",
+    "startDate": "2012-01-01",
+    "endDate": "2014-12-31",
+    "experienceImage": "/images/companies/coursera-logo.png"
+  }
+]

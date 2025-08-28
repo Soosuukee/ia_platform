@@ -56,30 +56,7 @@ class Notification
     }
 
     // Setters
-    public function setRecipientId(int $recipientId): void
-    {
-        $this->recipientId = $recipientId;
-    }
 
-    public function setRecipientType(string $recipientType): void
-    {
-        $this->recipientType = $recipientType;
-    }
-
-    public function setMessage(string $message): void
-    {
-        $this->message = $message;
-    }
-
-    public function setIsRead(bool $isRead): void
-    {
-        $this->isRead = $isRead;
-    }
-
-    public function setCreatedAt(DateTimeImmutable $createdAt): void
-    {
-        $this->createdAt = $createdAt;
-    }
 
     public function markAsRead(): void
     {

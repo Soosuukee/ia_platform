@@ -20,7 +20,6 @@ class ReviewController
     public function indexByProvider(int $providerId): void
     {
         $reviews = $this->reviewRepo->findAllByProviderId($providerId);
-
         $data = array_map(fn($review) => $this->serialize($review), $reviews);
 
         echo json_encode($data);
@@ -30,24 +29,50 @@ class ReviewController
     // POST /reviews
     public function store(): void
     {
-        $data = json_decode(file_get_contents('php://input'), true);
+
         $clientId = $_SESSION['client_id'] ?? null;
 
-        if (
-            !$clientId ||
-            empty($data['providerId']) ||
-            !isset($data['rating']) ||
-            !isset($data['content'])
-        ) {
+        if (!$clientId) {
+            http_response_code(401);
+            echo json_encode(['error' => 'Unauthorized']);
+            exit;
+        }
+
+        $data = json_decode(file_get_contents('php://input'), true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
             http_response_code(400);
-            echo json_encode(['error' => 'Missing fields']);
+            echo json_encode(['error' => 'Invalid JSON']);
+            exit;
+        }
+
+        if (empty($data['providerId']) || !isset($data['rating']) || !isset($data['comment'])) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Missing required fields']);
+            exit;
+        }
+
+        if (!is_numeric($data['rating']) || $data['rating'] < 1 || $data['rating'] > 5) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Rating must be between 1 and 5']);
+            exit;
+        }
+
+        if (strlen($data['comment']) > 1000) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Comment must be 1000 characters or less']);
+            exit;
+        }
+
+        if (!is_numeric($data['providerId']) || $data['providerId'] <= 0) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Invalid providerId']);
             exit;
         }
 
         $review = new Review(
             (int) $clientId,
             (int) $data['providerId'],
-            $data['content'],
+            $data['comment'],
             (int) $data['rating']
         );
 
@@ -76,9 +101,10 @@ class ReviewController
     // PATCH /reviews/{id}
     public function patch(int $id): void
     {
-        $clientId = $_SESSION['client_id'] ?? null;
-        $review = $this->reviewRepo->findById($id);
 
+        $clientId = $_SESSION['client_id'] ?? null;
+
+        $review = $this->reviewRepo->findById($id);
         if (!$review || $review->getClientId() !== $clientId) {
             http_response_code(403);
             echo json_encode(['error' => 'Unauthorized']);
@@ -86,9 +112,26 @@ class ReviewController
         }
 
         $data = json_decode(file_get_contents('php://input'), true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Invalid JSON']);
+            exit;
+        }
 
-        if (isset($data['content'])) {
-            $review->setContent($data['content']);
+        if (isset($data['comment']) && strlen($data['comment']) > 1000) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Comment must be 1000 characters or less']);
+            exit;
+        }
+
+        if (isset($data['rating']) && (!is_numeric($data['rating']) || $data['rating'] < 1 || $data['rating'] > 5)) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Rating must be between 1 and 5']);
+            exit;
+        }
+
+        if (isset($data['comment'])) {
+            $review->setComment($data['comment']);
         }
 
         if (isset($data['rating'])) {
@@ -96,7 +139,6 @@ class ReviewController
         }
 
         $this->reviewRepo->update($review);
-
         echo json_encode(['message' => 'Review updated']);
         exit;
     }
@@ -104,9 +146,10 @@ class ReviewController
     // DELETE /reviews/{id}
     public function destroy(int $id): void
     {
-        $clientId = $_SESSION['client_id'] ?? null;
-        $review = $this->reviewRepo->findById($id);
 
+        $clientId = $_SESSION['client_id'] ?? null;
+
+        $review = $this->reviewRepo->findById($id);
         if (!$review || $review->getClientId() !== $clientId) {
             http_response_code(403);
             echo json_encode(['error' => 'Unauthorized']);
@@ -126,7 +169,7 @@ class ReviewController
             'clientId' => $review->getClientId(),
             'providerId' => $review->getProviderId(),
             'rating' => $review->getRating(),
-            'content' => $review->getContent(),
+            'comment' => $review->getComment(),
             'createdAt' => $review->getCreatedAt()->format('Y-m-d H:i:s'),
         ];
     }

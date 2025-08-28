@@ -11,8 +11,7 @@ interface AccountHolder
     public function getFirstName(): string;
     public function getLastName(): string;
     public function getEmail(): string;
-    public function getPassword(): string;
-    public function getCountry(): string;
+    public function verifyPassword(string $password): bool;
     public function getRole(): string;
     public function getCreatedAt(): DateTimeImmutable;
 }

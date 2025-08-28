@@ -1,0 +1,50 @@
+[
+  {
+    "articleId": 1,
+    "providerId": 1,
+    "slug": "deepep-bibliotheque-communication-modeles-moe-a1234567890",
+    "title": "DeepEP : la bibliothèque de communication ultime pour vos modèles MoE",
+    "summary": "Découvrez comment DeepEP révolutionne la communication entre experts dans les modèles MoE avec une approche simple et efficace.",
+    "publishedAt": "2024-01-10T09:00:00Z",
+    "articleCover": "/images/blog/deepep/deepep-cover.jpg",
+    "tag": "Deep Learning",
+    "language": "fr",
+    "isPublished": true
+  },
+  {
+    "articleId": 2,
+    "providerId": 1,
+    "slug": "supercalculateurs-gpu-sante-acceleration-decouverte-medicale-b9876543210",
+    "title": "Les supercalculateurs GPU au service de la santé : comment accélérer la découverte médicale",
+    "summary": "Explorez comment les supercalculateurs GPU révolutionnent la recherche médicale et accélèrent la découverte de nouveaux traitements.",
+    "publishedAt": "2025-07-26",
+    "articleCover": "/images/blog/health/gpu-health.jpg",
+    "tag": "Santé",
+    "language": "fr",
+    "isPublished": true
+  },
+  {
+    "articleId": 3,
+    "providerId": 1,
+    "slug": "propulser-prochaine-vague-innovation-ia-c4567890123",
+    "title": "Propulser la prochaine vague d'innovation en IA",
+    "summary": "Découvrez les technologies émergentes qui vont façonner l'avenir de l'intelligence artificielle et créer de nouvelles opportunités.",
+    "publishedAt": "2025-07-25",
+    "articleCover": "/images/blog/hopper/hopper-arch-transformer.jpg",
+    "tag": "IA",
+    "language": "fr",
+    "isPublished": true
+  },
+  {
+    "articleId": 4,
+    "providerId": 1,
+    "slug": "cloud-hybride-edge-computing-acceleration-vision-strategique-nvidia-d7890123456",
+    "title": "Cloud hybride, edge computing et accélération : la vision stratégique de NVIDIA pour l'infrastructure de demain",
+    "summary": "Explorez comment NVIDIA façonne l'avenir des infrastructures TI avec une approche hybride, de l'edge computing à l'accélération GPU.",
+    "publishedAt": "2025-07-27",
+    "articleCover": "/images/blog/infrastructure/cover.jpg",
+    "tag": "Infrastructure TI",
+    "language": "fr",
+    "isPublished": true
+  }
+]

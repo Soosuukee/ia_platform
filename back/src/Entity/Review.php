@@ -5,23 +5,27 @@ declare(strict_types=1);
 namespace Soosuuke\IaPlatform\Entity;
 
 use DateTimeImmutable;
-
+use Soosuuke\IaPlatform\Entity\ValueObject\Rating;
 
 class Review
 {
     private int $id;
     private int $clientId;
     private int $providerId;
-    private string $content;
-    private int $rating; // Note sur 5
+    private string $comment;
+    private Rating $rating;
     private DateTimeImmutable $createdAt;
 
-    public function __construct(int $clientId, int $providerId, string $content, int $rating)
+    public function __construct(int $clientId, int $providerId, string $comment, int $rating)
     {
+        if (empty(trim($comment))) {
+            throw new \InvalidArgumentException('Le commentaire ne peut pas être vide');
+        }
+
         $this->clientId = $clientId;
         $this->providerId = $providerId;
-        $this->content = $content;
-        $this->rating = $rating;
+        $this->comment = trim($comment);
+        $this->rating = new Rating($rating);
         $this->createdAt = new DateTimeImmutable();
     }
 
@@ -41,14 +45,14 @@ class Review
         return $this->providerId;
     }
 
-    public function getContent(): string
+    public function getComment(): string
     {
-        return $this->content;
+        return $this->comment;
     }
 
     public function getRating(): int
     {
-        return $this->rating;
+        return $this->rating->getValue();
     }
 
     public function getCreatedAt(): DateTimeImmutable
@@ -57,13 +61,13 @@ class Review
     }
 
     // Setters
-    public function setContent(string $content): void
+    public function setComment(string $comment): void
     {
-        $this->content = $content;
+        $this->comment = $comment;
     }
 
     public function setRating(int $rating): void
     {
-        $this->rating = $rating;
+        $this->rating = new Rating($rating);
     }
 }

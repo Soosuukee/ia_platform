@@ -2,20 +2,38 @@
 
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 
-import { Fade, Flex, Line, ToggleButton } from "@/once-ui/components";
+import {
+  Fade,
+  Flex,
+  Line,
+  ToggleButton,
+  Button,
+  Text,
+} from "@/once-ui/components";
 import styles from "@/components/Header.module.scss";
 
 import { routes, display } from "@/app/resources";
-import { person, about, blog, work, gallery } from "@/app/resources/content";
+import {
+  person,
+  about,
+  blog,
+  work,
+  projects,
+  services,
+} from "@/app/resources/content";
 import { ThemeToggle } from "./ThemeToggle";
 
 type TimeDisplayProps = {
   timeZone: string;
-  locale?: string; // Optionally allow locale, defaulting to 'en-GB'
+  locale?: string;
 };
 
-const TimeDisplay: React.FC<TimeDisplayProps> = ({ timeZone, locale = "en-GB" }) => {
+const TimeDisplay: React.FC<TimeDisplayProps> = ({
+  timeZone,
+  locale = "en-GB",
+}) => {
   const [currentTime, setCurrentTime] = useState("");
 
   useEffect(() => {
@@ -45,11 +63,51 @@ export default TimeDisplay;
 
 export const Header = () => {
   const pathname = usePathname() ?? "";
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userName, setUserName] = useState("");
+  const [userType, setUserType] = useState<"client" | "provider" | null>(null);
+
+  useEffect(() => {
+    const checkAuth = () => {
+      const userId = localStorage.getItem("userId");
+      const storedUserType = localStorage.getItem("userType") as
+        | "client"
+        | "provider"
+        | null;
+      const storedUserName = localStorage.getItem("userName");
+
+      setIsAuthenticated(!!userId);
+      setUserType(storedUserType);
+      setUserName(storedUserName || "");
+    };
+
+    checkAuth();
+    window.addEventListener("storage", checkAuth);
+    return () => window.removeEventListener("storage", checkAuth);
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("userId");
+    localStorage.removeItem("userType");
+    localStorage.removeItem("userName");
+    setIsAuthenticated(false);
+    setUserType(null);
+    setUserName("");
+    window.location.href = "/";
+  };
 
   return (
     <>
       <Fade hide="s" fillWidth position="fixed" height="80" zIndex={9} />
-      <Fade show="s" fillWidth position="fixed" bottom="0" to="top" height="80" zIndex={9} />
+      <Fade
+        show="s"
+        fillWidth
+        position="fixed"
+        bottom="0"
+        to="top"
+        height="80"
+        zIndex={9}
+      />
       <Flex
         fitHeight
         position="unset"
@@ -61,8 +119,15 @@ export const Header = () => {
         horizontal="center"
         data-border="rounded"
       >
-        <Flex paddingLeft="12" fillWidth vertical="center" textVariant="body-default-s">
-          {display.location && <Flex hide="s">{person.location}</Flex>}
+        <Flex
+          paddingLeft="12"
+          fillWidth
+          vertical="center"
+          textVariant="body-default-s"
+        >
+          {isAuthenticated && userName && (
+            <Text variant="body-strong-m">Bienvenue {userName}</Text>
+          )}
         </Flex>
         <Flex fillWidth horizontal="center">
           <Flex
@@ -76,22 +141,14 @@ export const Header = () => {
           >
             <Flex gap="4" vertical="center" textVariant="body-default-s">
               {routes["/"] && (
-                <ToggleButton prefixIcon="home" href="/" selected={pathname === "/"} />
+                <ToggleButton href="/" selected={pathname === "/"} />
               )}
               <Line background="neutral-alpha-medium" vert maxHeight="24" />
               {routes["/about"] && (
                 <>
                   <ToggleButton
-                    className="s-flex-hide"
-                    prefixIcon="person"
                     href="/about"
-                    label={about.label}
-                    selected={pathname === "/about"}
-                  />
-                  <ToggleButton
-                    className="s-flex-show"
-                    prefixIcon="person"
-                    href="/about"
+                    label="A propos "
                     selected={pathname === "/about"}
                   />
                 </>
@@ -99,53 +156,36 @@ export const Header = () => {
               {routes["/work"] && (
                 <>
                   <ToggleButton
-                    className="s-flex-hide"
-                    prefixIcon="grid"
                     href="/work"
-                    label={work.label}
+                    label="Mes travaux"
                     selected={pathname.startsWith("/work")}
                   />
+                </>
+              )}
+              {routes["/services"] && (
+                <>
                   <ToggleButton
-                    className="s-flex-show"
-                    prefixIcon="grid"
-                    href="/work"
-                    selected={pathname.startsWith("/work")}
+                    href="/services"
+                    label="Mes services"
+                    selected={pathname.startsWith("/services")}
                   />
                 </>
               )}
               {routes["/blog"] && (
                 <>
                   <ToggleButton
-                    className="s-flex-hide"
-                    prefixIcon="book"
                     href="/blog"
-                    label={blog.label}
-                    selected={pathname.startsWith("/blog")}
-                  />
-                  <ToggleButton
-                    className="s-flex-show"
-                    prefixIcon="book"
-                    href="/blog"
-                    selected={pathname.startsWith("/blog")}
+                    label="Blog"
+                    selected={pathname.includes("blog")}
                   />
                 </>
               )}
-              {routes["/gallery"] && (
-                <>
-                  <ToggleButton
-                    className="s-flex-hide"
-                    prefixIcon="gallery"
-                    href="/gallery"
-                    label={gallery.label}
-                    selected={pathname.startsWith("/gallery")}
-                  />
-                  <ToggleButton
-                    className="s-flex-show"
-                    prefixIcon="gallery"
-                    href="/gallery"
-                    selected={pathname.startsWith("/gallery")}
-                  />
-                </>
+              {isAuthenticated && (
+                <ToggleButton
+                  href={`/${userType}-dashboard`}
+                  label="Dashboard"
+                  selected={pathname.includes("dashboard")}
+                />
               )}
               {display.themeSwitcher && (
                 <>
@@ -164,7 +204,31 @@ export const Header = () => {
             textVariant="body-default-s"
             gap="20"
           >
-            <Flex hide="s">{display.time && <TimeDisplay timeZone={person.location} />}</Flex>
+            {!isAuthenticated ? (
+              <Flex gap="8">
+                <Link href="/login">
+                  <Button variant="secondary" size="s" data-border="rounded">
+                    Log in
+                  </Button>
+                </Link>
+                <Link href="/signup">
+                  <Button variant="primary" size="s" data-border="rounded">
+                    Sign up
+                  </Button>
+                </Link>
+              </Flex>
+            ) : (
+              <Flex gap="8">
+                <Button
+                  variant="secondary"
+                  size="s"
+                  data-border="rounded"
+                  onClick={handleLogout}
+                >
+                  Déconnexion
+                </Button>
+              </Flex>
+            )}
           </Flex>
         </Flex>
       </Flex>

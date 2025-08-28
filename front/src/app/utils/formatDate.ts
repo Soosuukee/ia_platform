@@ -1,4 +1,8 @@
-export function formatDate(date: string, includeRelative = false) {
+export function formatDate(date: string | null, includeRelative = false) {
+  if (!date) {
+    return 'Date non spécifiée';
+  }
+
   const currentDate = new Date();
 
   if (!date.includes("T")) {
@@ -6,6 +10,12 @@ export function formatDate(date: string, includeRelative = false) {
   }
 
   const targetDate = new Date(date);
+  
+  // Vérifier si la date est valide
+  if (isNaN(targetDate.getTime())) {
+    return 'Date invalide';
+  }
+
   const yearsAgo = currentDate.getFullYear() - targetDate.getFullYear();
   const monthsAgo = currentDate.getMonth() - targetDate.getMonth();
   const daysAgo = currentDate.getDate() - targetDate.getDate();
@@ -22,7 +32,7 @@ export function formatDate(date: string, includeRelative = false) {
     formattedDate = "Today";
   }
 
-  const fullDate = targetDate.toLocaleString("en-us", {
+  const fullDate = targetDate.toLocaleString("fr-FR", {
     month: "long",
     day: "numeric",
     year: "numeric",

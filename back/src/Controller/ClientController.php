@@ -4,236 +4,159 @@ declare(strict_types=1);
 
 namespace Soosuuke\IaPlatform\Controller;
 
-use Soosuuke\IaPlatform\Entity\Client;
 use Soosuuke\IaPlatform\Repository\ClientRepository;
-use Soosuuke\IaPlatform\Repository\BookingRepository;
-use Soosuuke\IaPlatform\Repository\RequestRepository;
-use Soosuuke\IaPlatform\Repository\ReviewRepository;
+use Soosuuke\IaPlatform\Repository\CountryRepository;
+use Soosuuke\IaPlatform\Entity\Client;
+use Soosuuke\IaPlatform\Service\ClientSlugificationService;
+use Soosuuke\IaPlatform\Service\FileUploadService;
 
 class ClientController
 {
-    private ClientRepository $clientRepo;
-    private BookingRepository $bookingRepo;
-    private RequestRepository $requestRepo;
-    private ReviewRepository $reviewRepo;
+    private ClientRepository $clientRepository;
+    private CountryRepository $countryRepository;
+    private ClientSlugificationService $slugificationService;
+    private FileUploadService $fileUploadService;
 
-    public function __construct(
-        ClientRepository $clientRepo,
-        BookingRepository $bookingRepo,
-        RequestRepository $requestRepo,
-        ReviewRepository $reviewRepo
-    ) {
-        $this->clientRepo = $clientRepo;
-        $this->bookingRepo = $bookingRepo;
-        $this->requestRepo = $requestRepo;
-        $this->reviewRepo = $reviewRepo;
+    public function __construct()
+    {
+        $this->clientRepository = new ClientRepository();
+        $this->countryRepository = new CountryRepository();
+        $this->slugificationService = new ClientSlugificationService();
+        $this->fileUploadService = new FileUploadService();
+    }
+
+    // GET /clients
+    public function getAllClients(): array
+    {
+        return $this->clientRepository->findAll();
+    }
+
+    // GET /clients/{id}
+    public function getClientById(int $id): ?Client
+    {
+        return $this->clientRepository->findById($id);
+    }
+
+    // GET /clients/email/{email}
+    public function getClientByEmail(string $email): ?Client
+    {
+        return $this->clientRepository->findByEmail($email);
+    }
+
+    // GET /clients/slug/{slug}
+    public function getClientBySlug(string $slug): ?Client
+    {
+        return $this->clientRepository->findBySlug($slug);
     }
 
     // POST /clients
-    public function register(): void
+    public function createClient(array $data): Client
     {
-        session_start();
-
-        // CSRF protection
-        $csrfToken = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
-        if (!hash_equals($_SESSION['csrf_token'] ?? '', $csrfToken)) {
-            http_response_code(403);
-            echo json_encode(['error' => 'Invalid CSRF token']);
-            exit;
-        }
-
-        $data = json_decode(file_get_contents('php://input'), true);
-
-        if (
-            empty($data['firstName']) ||
-            empty($data['lastName']) ||
-            empty($data['email']) ||
-            empty($data['password']) ||
-            empty($data['country'])
-        ) {
-            http_response_code(400);
-            echo json_encode(['error' => 'Missing required fields']);
-            exit;
-        }
-
-        // Input validation
-        if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-            http_response_code(400);
-            echo json_encode(['error' => 'Invalid email format']);
-            exit;
-        }
-        if (strlen($data['password']) < 8) {
-            http_response_code(400);
-            echo json_encode(['error' => 'Password must be at least 8 characters']);
-            exit;
-        }
-
-        $existing = $this->clientRepo->findByEmail($data['email']);
-        if ($existing) {
-            http_response_code(409);
-            echo json_encode(['error' => 'Email already in use']);
-            exit;
-        }
+        // Générer le slug automatiquement
+        $slug = $this->slugificationService->generateClientSlug(
+            $data['firstName'],
+            $data['lastName'],
+            function ($slug) {
+                return $this->clientRepository->findBySlug($slug) !== null;
+            }
+        );
 
         $client = new Client(
             $data['firstName'],
             $data['lastName'],
             $data['email'],
-            password_hash($data['password'], PASSWORD_BCRYPT),
-            $data['country']
+            $data['password'],
+            $data['countryId'],
+            $data['city'],
+            $data['profilePicture'] ?? null,
+            $slug,
+            $data['state'] ?? null,
+            $data['postalCode'] ?? null,
+            $data['address'] ?? null
         );
 
-        $this->clientRepo->save($client);
-        $this->logAction("Client registered with ID {$client->getId()}");
-
-        http_response_code(201);
-        echo json_encode(['message' => 'Client registered successfully', 'id' => $client->getId()]);
-        exit;
+        $this->clientRepository->save($client);
+        return $client;
     }
 
-    // POST /clients/login
-    public function login(): void
+    // PUT /clients/{id}
+    public function updateClient(int $id, array $data): ?Client
     {
-        session_start();
-
-        // CSRF protection
-        $csrfToken = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
-        if (!hash_equals($_SESSION['csrf_token'] ?? '', $csrfToken)) {
-            http_response_code(403);
-            echo json_encode(['error' => 'Invalid CSRF token']);
-            exit;
+        $client = $this->clientRepository->findById($id);
+        if (!$client) {
+            return null;
         }
 
-        $data = json_decode(file_get_contents('php://input'), true);
+        // Mise à jour des propriétés
+        $client = new Client(
+            $data['firstName'] ?? $client->getFirstName(),
+            $data['lastName'] ?? $client->getLastName(),
+            $data['email'] ?? $client->getEmail(),
+            $data['countryId'] ?? $client->getCountryId(),
+            $data['city'] ?? $client->getCity(),
+            $data['profilePicture'] ?? $client->getProfilePicture(),
+            $data['slug'] ?? $client->getSlug(),
+            $data['state'] ?? $client->getState(),
+            $data['postalCode'] ?? $client->getPostalCode(),
+            $data['address'] ?? $client->getAddress()
+        );
 
-        if (empty($data['email']) || empty($data['password'])) {
-            http_response_code(400);
-            echo json_encode(['error' => 'Missing email or password']);
-            exit;
-        }
-
-        // Input validation
-        if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-            http_response_code(400);
-            echo json_encode(['error' => 'Invalid email format']);
-            exit;
-        }
-
-        $client = $this->clientRepo->findByEmail($data['email']);
-        if (!$client || !password_verify($data['password'], $client->getPassword())) {
-            http_response_code(401);
-            echo json_encode(['error' => 'Invalid credentials']);
-            exit;
-        }
-
-        $_SESSION['client_id'] = $client->getId();
-        $_SESSION['csrf_token'] = bin2hex(random_bytes(32)); // Generate new CSRF token
-
-        $this->logAction("Client {$client->getId()} logged in");
-
-        echo json_encode(['message' => 'Login successful', 'csrf_token' => $_SESSION['csrf_token']]);
-        exit;
-    }
-
-    // POST /clients/logout
-    public function logout(): void
-    {
-        session_start();
-
-        // CSRF protection
-        $csrfToken = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
-        if (!hash_equals($_SESSION['csrf_token'] ?? '', $csrfToken)) {
-            http_response_code(403);
-            echo json_encode(['error' => 'Invalid CSRF token']);
-            exit;
-        }
-
-        $clientId = $_SESSION['client_id'] ?? 'unknown';
-        session_destroy();
-        $this->logAction("Client {$clientId} logged out");
-
-        echo json_encode(['message' => 'Logout successful']);
-        exit;
-    }
-
-    // GET /clients/{id}
-    public function show(int $id): void
-    {
-        session_start();
-        if (!isset($_SESSION['client_id']) || $_SESSION['client_id'] !== $id) {
-            http_response_code(403);
-            echo json_encode(['error' => 'Unauthorized']);
-            exit;
-        }
-
-        $client = $this->clientRepo->findById($id);
-        if (!$client || $client->getRole() !== 'client') {
-            http_response_code(404);
-            echo json_encode(['error' => 'Client not found']);
-            exit;
-        }
-
-        echo json_encode([
-            'id' => $client->getId(),
-            'firstName' => $client->getFirstName(),
-            'lastName' => $client->getLastName(),
-            'email' => $client->getEmail(),
-            'country' => $client->getCountry(),
-            'createdAt' => $client->getCreatedAt()->format('Y-m-d H:i:s')
-        ]);
-        exit;
+        $this->clientRepository->update($client);
+        return $client;
     }
 
     // DELETE /clients/{id}
-    public function destroy(int $id): void
+    public function deleteClient(int $id): bool
     {
-        session_start();
-        if (!isset($_SESSION['client_id']) || $_SESSION['client_id'] !== $id) {
-            http_response_code(403);
-            echo json_encode(['error' => 'Unauthorized']);
-            exit;
+        $client = $this->clientRepository->findById($id);
+        if (!$client) {
+            return false;
         }
 
-        // CSRF protection
-        $csrfToken = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
-        if (!hash_equals($_SESSION['csrf_token'] ?? '', $csrfToken)) {
-            http_response_code(403);
-            echo json_encode(['error' => 'Invalid CSRF token']);
-            exit;
-        }
-
-        $data = json_decode(file_get_contents('php://input'), true);
-
-        $client = $this->clientRepo->findById($id);
-        if (!$client || $client->getRole() !== 'client') {
-            http_response_code(404);
-            echo json_encode(['error' => 'Client not found']);
-            exit;
-        }
-
-        // Password confirmation for deletion
-        if (empty($data['password']) || !password_verify($data['password'], $client->getPassword())) {
-            http_response_code(401);
-            echo json_encode(['error' => 'Invalid password for account deletion']);
-            exit;
-        }
-
-        // Cascade deletion
-        $this->bookingRepo->deleteByClientId($id);
-        $this->requestRepo->deleteByClientId($id);
-        $this->reviewRepo->deleteByClientId($id);
-        $this->clientRepo->deleteByClientId($id);
-
-        $this->logAction("Client {$id} deleted their account");
-        session_destroy();
-
-        echo json_encode(['message' => 'Client account deleted successfully']);
-        exit;
+        $this->clientRepository->delete($id);
+        return true;
     }
 
-    private function logAction(string $message): void
+    // GET /countries
+    public function getAllCountries(): array
     {
-        $logMessage = sprintf("[%s] %s\n", date('Y-m-d H:i:s'), $message);
-        file_put_contents(__DIR__ . '/../../logs/client_actions.log', $logMessage, FILE_APPEND);
+        return $this->countryRepository->findAll();
+    }
+
+    // POST /clients/{id}/profile-picture
+    public function uploadProfilePicture(int $clientId, array $file): array
+    {
+        try {
+            $client = $this->clientRepository->findById($clientId);
+            if (!$client) {
+                return [
+                    'success' => false,
+                    'message' => 'Client non trouvé'
+                ];
+            }
+
+            if ($client->getProfilePicture()) {
+                $this->fileUploadService->deleteFile($client->getProfilePicture());
+            }
+
+            $newProfilePictureUrl = $this->fileUploadService->uploadClientProfilePicture(
+                $file,
+                $clientId
+            );
+
+            $client->setProfilePicture($newProfilePictureUrl);
+            $this->clientRepository->update($client);
+
+            return [
+                'success' => true,
+                'message' => 'Photo de profil mise à jour avec succès',
+                'profilePicture' => $newProfilePictureUrl
+            ];
+        } catch (\Exception $e) {
+            return [
+                'success' => false,
+                'message' => 'Erreur lors de l\'upload: ' . $e->getMessage()
+            ];
+        }
     }
 }

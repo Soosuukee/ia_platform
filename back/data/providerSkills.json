@@ -1,0 +1,90 @@
+[
+  {
+    "providerSkillId": 1,
+    "providerId": 1,
+    "skillId": 1,
+    "yearsOfExperience": 25,
+    "certified": true,
+    "certificationDate": "2010-01-01"
+  },
+  {
+    "providerSkillId": 2,
+    "providerId": 1,
+    "skillId": 9,
+    "yearsOfExperience": 20,
+    "certified": true,
+    "certificationDate": null
+  },
+  {
+    "providerSkillId": 3,
+    "providerId": 1,
+    "skillId": 19,
+    "yearsOfExperience": 15,
+    "certified": false,
+    "certificationDate": null
+  },
+  {
+    "providerSkillId": 4,
+    "providerId": 1,
+    "skillId": 20,
+    "yearsOfExperience": 12,
+    "certified": false,
+    "certificationDate": null
+  },
+  {
+    "providerSkillId": 5,
+    "providerId": 1,
+    "skillId": 21,
+    "yearsOfExperience": 10,
+    "certified": false,
+    "certificationDate": null
+  },
+  {
+    "providerSkillId": 6,
+    "providerId": 2,
+    "skillId": 2,
+    "yearsOfExperience": 10,
+    "certified": true,
+    "certificationDate": "2018-01-01T00:00:00Z"
+  },
+  {
+    "providerSkillId": 7,
+    "providerId": 2,
+    "skillId": 3,
+    "yearsOfExperience": 8,
+    "certified": false,
+    "certificationDate": null
+  },
+  {
+    "providerSkillId": 8,
+    "providerId": 2,
+    "skillId": 28,
+    "yearsOfExperience": 15,
+    "certified": true,
+    "certificationDate": "2015-01-01T00:00:00Z"
+  },
+  {
+    "providerSkillId": 9,
+    "providerId": 2,
+    "skillId": 47,
+    "yearsOfExperience": 5,
+    "certified": false,
+    "certificationDate": null
+  },
+  {
+    "providerSkillId": 10,
+    "providerId": 2,
+    "skillId": 48,
+    "yearsOfExperience": 7,
+    "certified": false,
+    "certificationDate": null
+  },
+  {
+    "providerSkillId": 11,
+    "providerId": 2,
+    "skillId": 50,
+    "yearsOfExperience": 3,
+    "certified": false,
+    "certificationDate": null
+  }
+]

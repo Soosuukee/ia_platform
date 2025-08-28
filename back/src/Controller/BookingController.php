@@ -41,8 +41,15 @@ class BookingController
     // POST /bookings
     public function create(): void
     {
-        $data = json_decode(file_get_contents('php://input'), true);
+        
         $sessionClientId = $_SESSION['client_id'] ?? null;
+
+        $data = json_decode(file_get_contents('php://input'), true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Invalid JSON']);
+            exit;
+        }
 
         if (
             !$sessionClientId ||
@@ -51,6 +58,17 @@ class BookingController
         ) {
             http_response_code(400);
             echo json_encode(['error' => 'Missing fields']);
+            exit;
+        }
+
+        if (!in_array($data['status'], ['pending', 'confirmed', 'canceled'])) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Invalid status']);
+            exit;
+        }
+        if (!is_numeric($data['slotId']) || $data['slotId'] <= 0) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Invalid slotId']);
             exit;
         }
 
@@ -70,9 +88,10 @@ class BookingController
     // PUT /bookings/{id}
     public function update(int $id): void
     {
+        
         $sessionClientId = $_SESSION['client_id'] ?? null;
-        $booking = $this->bookingRepository->findById($id);
 
+        $booking = $this->bookingRepository->findById($id);
         if (!$booking || $booking->getClientId() !== $sessionClientId) {
             http_response_code(403);
             echo json_encode(['error' => 'Unauthorized or not found']);
@@ -80,10 +99,26 @@ class BookingController
         }
 
         $data = json_decode(file_get_contents('php://input'), true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Invalid JSON']);
+            exit;
+        }
 
         if (!isset($data['status']) || !isset($data['slotId'])) {
             http_response_code(400);
             echo json_encode(['error' => 'Missing fields for full update']);
+            exit;
+        }
+
+        if (!in_array($data['status'], ['pending', 'confirmed', 'canceled'])) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Invalid status']);
+            exit;
+        }
+        if (!is_numeric($data['slotId']) || $data['slotId'] <= 0) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Invalid slotId']);
             exit;
         }
 
@@ -99,9 +134,10 @@ class BookingController
     // PATCH /bookings/{id}
     public function patch(int $id): void
     {
+        
         $sessionClientId = $_SESSION['client_id'] ?? null;
-        $booking = $this->bookingRepository->findById($id);
 
+        $booking = $this->bookingRepository->findById($id);
         if (!$booking || $booking->getClientId() !== $sessionClientId) {
             http_response_code(403);
             echo json_encode(['error' => 'Unauthorized or not found']);
@@ -109,11 +145,26 @@ class BookingController
         }
 
         $data = json_decode(file_get_contents('php://input'), true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Invalid JSON']);
+            exit;
+        }
+
+        if (isset($data['status']) && !in_array($data['status'], ['pending', 'confirmed', 'canceled'])) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Invalid status']);
+            exit;
+        }
+        if (isset($data['slotId']) && (!is_numeric($data['slotId']) || $data['slotId'] <= 0)) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Invalid slotId']);
+            exit;
+        }
 
         if (isset($data['status'])) {
             $booking->setStatus($data['status']);
         }
-
         if (isset($data['slotId'])) {
             $booking->setSlotId((int) $data['slotId']);
         }
@@ -127,9 +178,10 @@ class BookingController
     // DELETE /bookings/{id}
     public function destroy(int $id): void
     {
+        
         $sessionClientId = $_SESSION['client_id'] ?? null;
-        $booking = $this->bookingRepository->findById($id);
 
+        $booking = $this->bookingRepository->findById($id);
         if (!$booking || $booking->getClientId() !== $sessionClientId) {
             http_response_code(403);
             echo json_encode(['error' => 'Unauthorized or not found']);

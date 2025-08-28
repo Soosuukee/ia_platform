@@ -62,13 +62,13 @@ class ReviewRepository
     public function save(Review $review): void
     {
         $stmt = $this->pdo->prepare('
-            INSERT INTO review (client_id, provider_id, content, rating, created_at)
+            INSERT INTO review (client_id, provider_id, comment, rating, created_at)
             VALUES (?, ?, ?, ?, ?)
         ');
         if (!$stmt->execute([
             $review->getClientId(),
             $review->getProviderId(),
-            $review->getContent(),
+            $review->getComment(),
             $review->getRating(),
             $review->getCreatedAt()->format('Y-m-d H:i:s')
         ])) {
@@ -86,11 +86,11 @@ class ReviewRepository
     {
         $stmt = $this->pdo->prepare('
             UPDATE review
-            SET content = ?, rating = ?
+            SET comment = ?, rating = ?
             WHERE id = ?
         ');
         if (!$stmt->execute([
-            $review->getContent(),
+            $review->getComment(),
             $review->getRating(),
             $review->getId()
         ])) {
@@ -127,7 +127,7 @@ class ReviewRepository
         $review = new Review(
             (int) $data['client_id'],
             (int) $data['provider_id'],
-            $data['content'],
+            $data['comment'],
             (int) $data['rating']
         );
 

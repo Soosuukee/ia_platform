@@ -228,55 +228,44 @@ const work = {
   // All projects will be listed on the /home and /work routes
 };
 
-const gallery = {
-  path: "/gallery",
-  label: "Gallery",
-  title: `Photo gallery – ${person.name}`,
-  description: `A photo collection by ${person.name}`,
-  // Images by https://lorant.one
-  // These are placeholder images, replace with your own
-  images: [
-    {
-      src: "/images/gallery/horizontal-1.jpg",
-      alt: "image",
-      orientation: "horizontal",
-    },
-    {
-      src: "/images/gallery/horizontal-2.jpg",
-      alt: "image",
-      orientation: "horizontal",
-    },
-    {
-      src: "/images/gallery/horizontal-3.jpg",
-      alt: "image",
-      orientation: "horizontal",
-    },
-    {
-      src: "/images/gallery/horizontal-4.jpg",
-      alt: "image",
-      orientation: "horizontal",
-    },
-    {
-      src: "/images/gallery/vertical-1.jpg",
-      alt: "image",
-      orientation: "vertical",
-    },
-    {
-      src: "/images/gallery/vertical-2.jpg",
-      alt: "image",
-      orientation: "vertical",
-    },
-    {
-      src: "/images/gallery/vertical-3.jpg",
-      alt: "image",
-      orientation: "vertical",
-    },
-    {
-      src: "/images/gallery/vertical-4.jpg",
-      alt: "image",
-      orientation: "vertical",
-    },
-  ],
+const projects = {
+  path: "/projects",
+  label: "Projects",
+  title: `Projects – ${person.name}`,
+  description: `View completed works and projects by ${person.name}`,
 };
 
-export { person, social, newsletter, home, about, blog, work, gallery };
+const services = {
+  path: "/services",
+  label: "Services",
+  title: `Services – ${person.name}`,
+  description: `Browse services provided by ${person.name}`,
+};
+
+const login = {
+  path: "/login",
+  label: "Log in",
+  title: "Log in to your account",
+  description: "Access your account to manage your services and bookings",
+};
+
+const signup = {
+  path: "/signup",
+  label: "Sign up",
+  title: "Create an account",
+  description: "Join our platform as a client or service provider",
+};
+
+export {
+  person,
+  social,
+  newsletter,
+  home,
+  about,
+  blog,
+  work,
+  projects,
+  services,
+  login,
+  signup,
+};

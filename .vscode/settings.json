@@ -1,4 +1,21 @@
 {
     "postman.settings.dotenv-detection-notification-visibility": false,
-    "cSpell.enabled": false
+    "cSpell.enabled": false,
+    "sqltools.connections": [
+        {
+            "name": "ia_mysql",
+            "driver": "MySQL",
+            "server": "localhost",
+            "port": 3306,
+            "database": "dev_db",
+            "username": "soosuuke",
+            "password": "devmdp"
+        }
+    ],
+    "code-runner.executorMap": {
+        "sql": ""
+    },
+    "files.associations": {
+        "*.sql": "sql"
+    }
 }

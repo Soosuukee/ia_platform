@@ -19,17 +19,43 @@ class RequestController
     // POST /requests
     public function store(): void
     {
-        $data = json_decode(file_get_contents('php://input'), true);
+        
         $clientId = $_SESSION['client_id'] ?? null;
 
-        if (
-            !$clientId ||
-            empty($data['providerId']) ||
-            empty($data['title']) ||
-            empty($data['description'])
-        ) {
+        if (!$clientId) {
+            http_response_code(401);
+            echo json_encode(['error' => 'Unauthorized']);
+            exit;
+        }
+
+        $data = json_decode(file_get_contents('php://input'), true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
             http_response_code(400);
-            echo json_encode(['error' => 'Missing or invalid fields']);
+            echo json_encode(['error' => 'Invalid JSON']);
+            exit;
+        }
+
+        if (empty($data['providerId']) || empty($data['title']) || empty($data['description'])) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Missing required fields']);
+            exit;
+        }
+
+        if (!is_numeric($data['providerId']) || $data['providerId'] <= 0) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Invalid providerId']);
+            exit;
+        }
+
+        if (strlen($data['title']) > 255) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Title must be 255 characters or less']);
+            exit;
+        }
+
+        if (strlen($data['description']) > 1000) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Description must be 1000 characters or less']);
             exit;
         }
 
@@ -50,6 +76,7 @@ class RequestController
     // GET /requests/provider/{providerId}
     public function getByProvider(int $providerId): void
     {
+        
         $sessionProviderId = $_SESSION['provider_id'] ?? null;
 
         if ((int) $providerId !== $sessionProviderId) {
@@ -59,7 +86,6 @@ class RequestController
         }
 
         $requests = $this->repo->findAllByProviderId($providerId);
-
         $data = array_map(fn($r) => $this->serialize($r), $requests);
 
         echo json_encode($data);
@@ -69,6 +95,7 @@ class RequestController
     // GET /requests/client/{clientId}
     public function getByClient(int $clientId): void
     {
+        
         $sessionClientId = $_SESSION['client_id'] ?? null;
 
         if ((int) $clientId !== $sessionClientId) {
@@ -78,7 +105,6 @@ class RequestController
         }
 
         $requests = $this->repo->findAllByClientId($clientId);
-
         $data = array_map(fn($r) => $this->serialize($r), $requests);
 
         echo json_encode($data);
@@ -88,8 +114,15 @@ class RequestController
     // PATCH /requests/{id}
     public function updateStatus(int $id): void
     {
+        
         $sessionProviderId = $_SESSION['provider_id'] ?? null;
+
         $data = json_decode(file_get_contents('php://input'), true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Invalid JSON']);
+            exit;
+        }
 
         if (empty($data['status'])) {
             http_response_code(400);
@@ -105,7 +138,6 @@ class RequestController
         }
 
         $request = $this->repo->findById($id);
-
         if (!$request || $request->getProviderId() !== $sessionProviderId) {
             http_response_code(403);
             echo json_encode(['error' => 'Unauthorized or request not found']);
@@ -120,9 +152,10 @@ class RequestController
     // DELETE /requests/{id}
     public function destroy(int $id): void
     {
+        
         $sessionClientId = $_SESSION['client_id'] ?? null;
-        $request = $this->repo->findById($id);
 
+        $request = $this->repo->findById($id);
         if (!$request || $request->getClientId() !== $sessionClientId) {
             http_response_code(403);
             echo json_encode(['error' => 'Unauthorized or request not found']);

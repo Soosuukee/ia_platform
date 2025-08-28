@@ -1,0 +1,52 @@
+[
+  {
+    "diplomaId": 1,
+    "providerId": 1,
+    "diplomaTitle": "Bachelor en Génie Électrique",
+    "institutionName": "Université de l'État d'Oregon",
+    "description": "Parcours accrédité ABET couvrant les fondements du génie électrique : circuits analogiques et numériques, électronique de puissance, électromagnétisme, traitement du signal et microprocesseurs.",
+    "startDate": "1980-01-01T00:00:00Z",
+    "endDate": "1984-12-31T00:00:00Z",
+    "diplomaImageUrl": "/images/institutions/oregon-state-logo.png"
+  },
+  {
+    "diploma_id": 2,
+    "provider_id": 1,
+    "diploma_title": "Master en Génie Électrique",
+    "institution_name": "Université de Stanford",
+    "description": "Cycle de recherche axé sur les architectures matérielles avancées et le calcul parallèle : VLSI, conception de processeurs graphiques et algorithmes accélérés.",
+    "start_date": "1990-01-01",
+    "end_date": "1992-12-31",
+    "diploma_image_url": "/images/institutions/stanford-logo.png"
+  },
+  {
+    "diploma_id": 3,
+    "provider_id": 2,
+    "diploma_title": "Master en Intelligence Artificielle",
+    "institution_name": "Université de Stanford",
+    "description": "Formation approfondie en machine learning, deep learning et traitement du langage naturel. Recherche sur les réseaux de neurones et l'optimisation.",
+    "start_date": "2000-01-01",
+    "end_date": "2002-12-31",
+    "diploma_image_url": "/images/institutions/stanford-logo.png"
+  },
+  {
+    "diploma_id": 4,
+    "provider_id": 2,
+    "diploma_title": "PhD en Informatique",
+    "institution_name": "Université de Californie, Berkeley",
+    "description": "Doctorat en informatique avec spécialisation en machine learning et reconnaissance de patterns. Thèse sur les algorithmes d'apprentissage automatique.",
+    "start_date": "2002-01-01",
+    "end_date": "2005-12-31",
+    "diploma_image_url": "/images/institutions/berkeley-logo.png"
+  },
+  {
+    "diploma_id": 5,
+    "provider_id": 2,
+    "diploma_title": "Formation Continue en Deep Learning",
+    "institution_name": "MIT",
+    "description": "Programme de formation continue spécialisé dans les réseaux de neurones profonds et les architectures transformer.",
+    "start_date": "2020-01-01",
+    "end_date": null,
+    "diploma_image_url": "/images/institutions/mit-logo.png"
+  }
+]

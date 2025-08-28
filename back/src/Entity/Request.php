@@ -5,31 +5,44 @@ declare(strict_types=1);
 namespace Soosuuke\IaPlatform\Entity;
 
 use DateTimeImmutable;
+use Soosuuke\IaPlatform\Entity\Enum\RequestStatus;
 
 class Request
 {
-    private int $requestId;
+    private int $id;
     private int $clientId;
     private int $providerId;
     private string $title;
     private string $description;
     private DateTimeImmutable $createdAt;
-    private string $status; // pending / accepted / declined / completed
+    private RequestStatus $status;
 
     public function __construct(int $clientId, int $providerId, string $title, string $description)
     {
+        $this->validateInputs($title, $description);
+
         $this->clientId = $clientId;
         $this->providerId = $providerId;
-        $this->title = $title;
-        $this->description = $description;
+        $this->title = trim($title);
+        $this->description = trim($description);
         $this->createdAt = new DateTimeImmutable();
-        $this->status = 'pending';
+        $this->status = RequestStatus::PENDING;
+    }
+
+    private function validateInputs(string $title, string $description): void
+    {
+        if (empty(trim($title))) {
+            throw new \InvalidArgumentException('Le titre ne peut pas être vide');
+        }
+        if (empty(trim($description))) {
+            throw new \InvalidArgumentException('La description ne peut pas être vide');
+        }
     }
 
     // Getters
-    public function getRequestId(): int
+    public function getId(): int
     {
-        return $this->requestId;
+        return $this->id;
     }
 
     public function getClientId(): int
@@ -59,7 +72,7 @@ class Request
 
     public function getStatus(): string
     {
-        return $this->status;
+        return $this->status->value;
     }
 
     // Setters
@@ -75,6 +88,6 @@ class Request
 
     public function setStatus(string $status): void
     {
-        $this->status = $status;
+        $this->status = RequestStatus::fromString($status);
     }
 }

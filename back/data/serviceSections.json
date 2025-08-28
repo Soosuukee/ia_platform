@@ -1,0 +1,142 @@
+[
+  {
+    "serviceSectionId": 1,
+    "serviceId": 1,
+    "title": "Présentation des conférences"
+  },
+  {
+    "serviceSectionId": 2,
+    "serviceId": 1,
+    "title": "Thématiques abordées"
+  },
+  {
+    "serviceSectionId": 3,
+    "serviceId": 1,
+    "title": "Format et durée"
+  },
+  {
+    "serviceSectionId": 4,
+    "serviceId": 1,
+    "title": "Tarification"
+  },
+  {
+    "serviceSectionId": 5,
+    "serviceId": 2,
+    "title": "Conseil stratégique IA"
+  },
+  {
+    "serviceSectionId": 6,
+    "serviceId": 2,
+    "title": "Optimisation GPU"
+  },
+  {
+    "serviceSectionId": 7,
+    "serviceId": 2,
+    "title": "Méthodologie"
+  },
+  {
+    "serviceSectionId": 8,
+    "serviceId": 3,
+    "title": "Programme d'accélération"
+  },
+  {
+    "serviceSectionId": 9,
+    "serviceId": 3,
+    "title": "Phases du programme"
+  },
+  {
+    "serviceSectionId": 10,
+    "serviceId": 3,
+    "title": "Bénéfices pour les startups"
+  },
+  {
+    "serviceSectionId": 11,
+    "serviceId": 4,
+    "title": "Développement de modèles ML"
+  },
+  {
+    "serviceSectionId": 12,
+    "serviceId": 4,
+    "title": "Technologies utilisées"
+  },
+  {
+    "serviceSectionId": 13,
+    "serviceId": 4,
+    "title": "Processus de développement"
+  },
+  {
+    "serviceSectionId": 14,
+    "serviceId": 5,
+    "title": "Optimisation d'algorithmes"
+  },
+  {
+    "serviceSectionId": 15,
+    "serviceId": 5,
+    "title": "Techniques d'optimisation"
+  },
+  {
+    "serviceSectionId": 16,
+    "serviceId": 5,
+    "title": "Gains de performance"
+  },
+  {
+    "serviceSectionId": 17,
+    "serviceId": 6,
+    "title": "Analyse de données avancée"
+  },
+  {
+    "serviceSectionId": 18,
+    "serviceId": 6,
+    "title": "Outils et technologies"
+  },
+  {
+    "serviceSectionId": 19,
+    "serviceId": 6,
+    "title": "Livrables"
+  },
+  {
+    "serviceSectionId": 20,
+    "serviceId": 7,
+    "title": "Recherche en IA innovante"
+  },
+  {
+    "serviceSectionId": 21,
+    "serviceId": 7,
+    "title": "Domaines de recherche"
+  },
+  {
+    "serviceSectionId": 22,
+    "serviceId": 7,
+    "title": "Collaboration et partenariats"
+  },
+  {
+    "serviceSectionId": 23,
+    "serviceId": 8,
+    "title": "Solutions de vision par ordinateur"
+  },
+  {
+    "serviceSectionId": 24,
+    "serviceId": 8,
+    "title": "Applications pratiques"
+  },
+  {
+    "serviceSectionId": 25,
+    "serviceId": 8,
+    "title": "Technologies utilisées"
+  },
+  {
+    "serviceSectionId": 26,
+    "serviceId": 9,
+    "title": "Deep Learning spécialisé"
+  },
+  {
+    "serviceSectionId": 27,
+    "serviceId": 9,
+    "title": "Architectures neurales"
+  },
+  {
+    "serviceSectionId": 28,
+    "serviceId": 9,
+    "title": "Cas d'usage"
+  }
+]

@@ -1,0 +1,68 @@
+[
+  {
+    "id": 1,
+    "provider_id": 1,
+    "slug": "jensen-huang-e2345678901",
+    "firstName": "Jensen",
+    "lastName": "Huang",
+    "email": "example@gmail.com",
+    "avatar": "/images/avatar-jh.jpg",
+    "location": "Taïwan",
+    "createdAt": "2024-01-01T00:00:00Z"
+  },
+  {
+    "id": 2,
+    "provider_id": 2,
+    "slug": "marie-dubois-f3456789012",
+    "firstName": "Marie",
+    "lastName": "Dubois",
+    "email": "marie.dubois@example.com",
+    "avatar": "/images/avatar-md.webp",
+    "location": "France",
+    "createdAt": "2024-01-15T00:00:00Z"
+  },
+  {
+    "id": 3,
+    "provider_id": 3,
+    "slug": "carlos-garcia-g4567890123",
+    "firstName": "Carlos",
+    "lastName": "Garcia",
+    "email": "carlos.garcia@example.com",
+    "avatar": "/images/avatar-gc.jpg",
+    "location": "Mexique",
+    "createdAt": "2024-02-01T00:00:00Z"
+  },
+  {
+    "id": 4,
+    "provider_id": 4,
+    "slug": "akira-tanaka-h5678901234",
+    "firstName": "Akira",
+    "lastName": "Tanaka",
+    "email": "akira.tanaka@example.com",
+    "avatar": "/images/avatar-at.jpg",
+    "location": "Japon",
+    "createdAt": "2024-02-15T00:00:00Z"
+  },
+  {
+    "id": 5,
+    "provider_id": 5,
+    "slug": "elena-rossi-i6789012345",
+    "firstName": "Elena",
+    "lastName": "Rossi",
+    "email": "elena.rossi@example.com",
+    "avatar": "/images/avatar-er.webp",
+    "location": "Italie",
+    "createdAt": "2024-03-01T00:00:00Z"
+  },
+  {
+    "id": 6,
+    "provider_id": 6,
+    "slug": "raj-patel-j7890123456",
+    "firstName": "Raj",
+    "lastName": "Patel",
+    "email": "raj.patel@example.com",
+    "avatar": "/images/avatar-rp.webp",
+    "location": "Inde",
+    "createdAt": "2024-03-15T00:00:00Z"
+  }
+]

@@ -5,259 +5,413 @@ declare(strict_types=1);
 namespace Soosuuke\IaPlatform\Controller;
 
 use Soosuuke\IaPlatform\Repository\ProviderRepository;
-use Soosuuke\IaPlatform\Repository\ProviderSkillRepository;
-use Soosuuke\IaPlatform\Repository\AvailabilitySlotRepository;
+use Soosuuke\IaPlatform\Repository\CountryRepository;
+use Soosuuke\IaPlatform\Repository\ProviderSoftSkillRepository;
+use Soosuuke\IaPlatform\Repository\ProviderHardSkillRepository;
+use Soosuuke\IaPlatform\Repository\ProviderJobRepository;
+use Soosuuke\IaPlatform\Repository\ProviderLanguageRepository;
+use Soosuuke\IaPlatform\Repository\EducationRepository;
+use Soosuuke\IaPlatform\Repository\ExperienceRepository;
+use Soosuuke\IaPlatform\Repository\CompletedWorkRepository;
 use Soosuuke\IaPlatform\Entity\Provider;
+use Soosuuke\IaPlatform\Service\ProviderSlugificationService;
+use Soosuuke\IaPlatform\Service\FileUploadService;
 
 class ProviderController
 {
     private ProviderRepository $providerRepository;
-    private ProviderSkillRepository $skillRepository;
-    private AvailabilitySlotRepository $slotRepository;
+    private CountryRepository $countryRepository;
+    private ProviderSoftSkillRepository $softSkillRepository;
+    private ProviderHardSkillRepository $hardSkillRepository;
+    private ProviderJobRepository $jobRepository;
+    private ProviderLanguageRepository $languageRepository;
+    private EducationRepository $educationRepository;
+    private ExperienceRepository $experienceRepository;
+    private CompletedWorkRepository $completedWorkRepository;
+    private ProviderSlugificationService $slugificationService;
+    private FileUploadService $fileUploadService;
 
-    public function __construct(
-        ProviderRepository $providerRepository,
-        ProviderSkillRepository $skillRepository,
-        AvailabilitySlotRepository $slotRepository
-    ) {
-        $this->providerRepository = $providerRepository;
-        $this->skillRepository = $skillRepository;
-        $this->slotRepository = $slotRepository;
+    public function __construct()
+    {
+        $this->providerRepository = new ProviderRepository();
+        $this->countryRepository = new CountryRepository();
+        $this->softSkillRepository = new ProviderSoftSkillRepository();
+        $this->hardSkillRepository = new ProviderHardSkillRepository();
+        $this->jobRepository = new ProviderJobRepository();
+        $this->languageRepository = new ProviderLanguageRepository();
+        $this->educationRepository = new EducationRepository();
+        $this->experienceRepository = new ExperienceRepository();
+        $this->completedWorkRepository = new CompletedWorkRepository();
+        $this->slugificationService = new ProviderSlugificationService();
+        $this->fileUploadService = new FileUploadService();
+    }
+
+    // GET /providers
+    public function getAllProviders(): array
+    {
+        return $this->providerRepository->findAll();
     }
 
     // GET /providers/{id}
-    public function show(int $id): void
+    public function getProviderById(int $id): ?Provider
     {
-        $provider = $this->providerRepository->findById($id);
-
-        if (!$provider) {
-            http_response_code(404);
-            echo json_encode(['error' => 'Provider not found']);
-            exit;
-        }
-
-        $skills = $this->skillRepository->findAllSkillsByProviderId($id);
-        $slots = $this->slotRepository->findAvailableByProviderId($id);
-
-        $provider->setSkills($skills);
-        $provider->setAvailabilitySlots($slots);
-
-        echo json_encode([
-            'id' => $provider->getId(),
-            'firstName' => $provider->getFirstName(),
-            'lastName' => $provider->getLastName(),
-            'email' => $provider->getEmail(),
-            'title' => $provider->getTitle(),
-            'presentation' => $provider->getPresentation(),
-            'country' => $provider->getCountry(),
-            'createdAt' => $provider->getCreatedAt()->format('Y-m-d H:i:s'),
-            'profilePicture' => $provider->getProfilePicture(),
-            'socialLinks' => $provider->getSocialLinks(), // Ajout des liens sociaux
-            'skills' => array_map(fn($s) => [
-                'id' => $s->getId(),
-                'name' => $s->getName(),
-            ], $skills),
-            'availabilitySlots' => array_map(fn($s) => [
-                'id' => $s->getId(),
-                'start' => $s->getStartTime()->format('Y-m-d H:i:s'),
-                'end' => $s->getEndTime()->format('Y-m-d H:i:s'),
-                'isBooked' => $s->isBooked(),
-            ], $slots)
-        ]);
-        exit;
+        return $this->providerRepository->findById($id);
     }
 
-    // POST /providers (Register)
-    public function register(): void
+    // GET /providers/email/{email}
+    public function getProviderByEmail(string $email): ?Provider
     {
-        session_start();
+        return $this->providerRepository->findByEmail($email);
+    }
 
-        // CSRF protection
-        $csrfToken = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
-        if (!hash_equals($_SESSION['csrf_token'] ?? '', $csrfToken)) {
-            http_response_code(403);
-            echo json_encode(['error' => 'Invalid CSRF token']);
-            exit;
-        }
+    // GET /providers/slug/{slug}
+    public function getProviderBySlug(string $slug): ?Provider
+    {
+        return $this->providerRepository->findBySlug($slug);
+    }
 
-        $data = json_decode(file_get_contents('php://input'), true);
-
-        if (
-            empty($data['firstName']) || empty($data['lastName']) ||
-            empty($data['email']) || empty($data['password']) ||
-            empty($data['title']) || empty($data['presentation']) || empty($data['country'])
-        ) {
-            http_response_code(400);
-            echo json_encode(['error' => 'Missing required fields']);
-            exit;
-        }
-
-        // Input validation
-        if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-            http_response_code(400);
-            echo json_encode(['error' => 'Invalid email format']);
-            exit;
-        }
-        if (strlen($data['password']) < 8) {
-            http_response_code(400);
-            echo json_encode(['error' => 'Password must be at least 8 characters']);
-            exit;
-        }
-
-        // Validation des liens sociaux si fournis
-        if (isset($data['socialLinks']) && is_array($data['socialLinks'])) {
-            foreach ($data['socialLinks'] as $link) {
-                if (!empty($link) && !filter_var($link, FILTER_VALIDATE_URL)) {
-                    http_response_code(400);
-                    echo json_encode(['error' => 'Invalid social link format']);
-                    exit;
-                }
+    /**
+     * Upload une photo de profil pour un provider
+     */
+    public function uploadProfilePicture(int $providerId, array $file): array
+    {
+        try {
+            // Vérifier que le provider existe
+            $provider = $this->providerRepository->findById($providerId);
+            if (!$provider) {
+                return [
+                    'success' => false,
+                    'message' => 'Provider non trouvé'
+                ];
             }
-        }
 
-        if ($this->providerRepository->findByEmail($data['email'])) {
-            http_response_code(409);
-            echo json_encode(['error' => 'Email already in use']);
-            exit;
+            // Supprimer l'ancienne photo si elle existe
+            if ($provider->getProfilePicture()) {
+                $this->fileUploadService->deleteFile($provider->getProfilePicture());
+            }
+
+            // Upload de la nouvelle photo
+            $newProfilePictureUrl = $this->fileUploadService->uploadProviderProfilePicture(
+                $file,
+                $providerId
+            );
+
+            // Mettre à jour le provider en base
+            $provider->setProfilePicture($newProfilePictureUrl);
+            $this->providerRepository->update($provider);
+
+            return [
+                'success' => true,
+                'message' => 'Photo de profil mise à jour avec succès',
+                'profilePicture' => $newProfilePictureUrl
+            ];
+        } catch (\Exception $e) {
+            return [
+                'success' => false,
+                'message' => 'Erreur lors de l\'upload: ' . $e->getMessage()
+            ];
         }
+    }
+
+    // POST /providers
+    public function createProvider(array $data): Provider
+    {
+        // Générer le slug automatiquement
+        $slug = $this->slugificationService->generateProviderSlug(
+            $data['firstName'],
+            $data['lastName'],
+            function ($slug) {
+                return $this->providerRepository->findBySlug($slug) !== null;
+            }
+        );
 
         $provider = new Provider(
             $data['firstName'],
             $data['lastName'],
             $data['email'],
-            password_hash($data['password'], PASSWORD_BCRYPT),
-            $data['title'],
-            $data['presentation'],
-            $data['country'],
+            $data['password'],
+            $data['countryId'],
+            $data['city'],
             $data['profilePicture'] ?? null,
-            'provider', // role par défaut
-            $data['socialLinks'] ?? [] // liens sociaux
+            $slug,
+            $data['state'] ?? null,
+            $data['postalCode'] ?? null,
+            $data['address'] ?? null
         );
 
         $this->providerRepository->save($provider);
-        $this->logAction("Provider registered with ID {$provider->getId()}");
-
-        http_response_code(201);
-        echo json_encode(['message' => 'Provider registered', 'id' => $provider->getId()]);
-        exit;
+        return $provider;
     }
 
-    // POST /providers/login
-    public function login(): void
+    // PUT /providers/{id}
+    public function updateProvider(int $id, array $data): ?Provider
     {
-        session_start();
-
-        // CSRF protection
-        $csrfToken = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
-        if (!hash_equals($_SESSION['csrf_token'] ?? '', $csrfToken)) {
-            http_response_code(403);
-            echo json_encode(['error' => 'Invalid CSRF token']);
-            exit;
+        $provider = $this->providerRepository->findById($id);
+        if (!$provider) {
+            return null;
         }
 
-        $data = json_decode(file_get_contents('php://input'), true);
+        // Mise à jour des propriétés
+        $provider = new Provider(
+            $data['firstName'] ?? $provider->getFirstName(),
+            $data['lastName'] ?? $provider->getLastName(),
+            $data['email'] ?? $provider->getEmail(),
+            $data['countryId'] ?? $provider->getCountryId(),
+            $data['city'] ?? $provider->getCity(),
+            $data['profilePicture'] ?? $provider->getProfilePicture(),
+            $data['slug'] ?? $provider->getSlug(),
+            $data['state'] ?? $provider->getState(),
+            $data['postalCode'] ?? $provider->getPostalCode(),
+            $data['address'] ?? $provider->getAddress()
+        );
 
-        if (empty($data['email']) || empty($data['password'])) {
-            http_response_code(400);
-            echo json_encode(['error' => 'Missing credentials']);
-            exit;
-        }
-
-        // Input validation
-        if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-            http_response_code(400);
-            echo json_encode(['error' => 'Invalid email format']);
-            exit;
-        }
-
-        $provider = $this->providerRepository->findByEmail($data['email']);
-
-        if (!$provider || !password_verify($data['password'], $provider->getPassword())) {
-            http_response_code(401);
-            echo json_encode(['error' => 'Invalid credentials']);
-            exit;
-        }
-
-        $_SESSION['provider_id'] = $provider->getId();
-        $_SESSION['csrf_token'] = bin2hex(random_bytes(32)); // Generate new CSRF token
-
-        $this->logAction("Provider {$provider->getId()} logged in");
-
-        echo json_encode(['message' => 'Login successful', 'csrf_token' => $_SESSION['csrf_token']]);
-        exit;
-    }
-
-    // POST /providers/logout
-    public function logout(): void
-    {
-        session_start();
-
-        // CSRF protection
-        $csrfToken = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
-        if (!hash_equals($_SESSION['csrf_token'] ?? '', $csrfToken)) {
-            http_response_code(403);
-            echo json_encode(['error' => 'Invalid CSRF token']);
-            exit;
-        }
-
-        $providerId = $_SESSION['provider_id'] ?? 'unknown';
-        session_destroy();
-        $this->logAction("Provider {$providerId} logged out");
-
-        echo json_encode(['message' => 'Logout successful']);
-        exit;
+        $this->providerRepository->update($provider);
+        return $provider;
     }
 
     // DELETE /providers/{id}
-    public function destroy(int $id): void
+    public function deleteProvider(int $id): bool
     {
-        session_start();
-        $sessionProviderId = $_SESSION['provider_id'] ?? null;
-        if ($id !== $sessionProviderId) {
-            http_response_code(403);
-            echo json_encode(['error' => 'Unauthorized']);
-            exit;
-        }
-
-        // CSRF protection
-        $csrfToken = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
-        if (!hash_equals($_SESSION['csrf_token'] ?? '', $csrfToken)) {
-            http_response_code(403);
-            echo json_encode(['error' => 'Invalid CSRF token']);
-            exit;
-        }
-
-        $data = json_decode(file_get_contents('php://input'), true);
-
-        // Password confirmation for deletion
         $provider = $this->providerRepository->findById($id);
         if (!$provider) {
-            http_response_code(404);
-            echo json_encode(['error' => 'Provider not found']);
-            exit;
+            return false;
         }
 
-        if (empty($data['password']) || !password_verify($data['password'], $provider->getPassword())) {
-            http_response_code(401);
-            echo json_encode(['error' => 'Invalid password for account deletion']);
-            exit;
-        }
-
-        // Cascade deletion
-        $this->skillRepository->deleteByProviderId($id);
-        $this->slotRepository->deleteByProviderId($id);
         $this->providerRepository->delete($id);
-
-        $this->logAction("Provider {$id} deleted their account");
-        session_destroy();
-
-        echo json_encode(['message' => 'Provider account deleted successfully']);
-        exit;
+        return true;
     }
 
-    private function logAction(string $message): void
+    // GET /providers/{id}/soft-skills
+    public function getProviderSoftSkills(int $providerId): array
     {
-        $logMessage = sprintf("[%s] %s\n", date('Y-m-d H:i:s'), $message);
-        file_put_contents(__DIR__ . '/../../logs/provider_actions.log', $logMessage, FILE_APPEND);
+        return $this->softSkillRepository->findByProviderId($providerId);
+    }
+
+    // POST /providers/{id}/soft-skills
+    public function addSoftSkillToProvider(int $providerId, int $skillId): bool
+    {
+        try {
+            $this->softSkillRepository->addSkillToProvider($providerId, $skillId);
+            return true;
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
+
+    // DELETE /providers/{id}/soft-skills/{skillId}
+    public function removeSoftSkillFromProvider(int $providerId, int $skillId): bool
+    {
+        try {
+            $this->softSkillRepository->removeSkillFromProvider($providerId, $skillId);
+            return true;
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
+
+    // GET /providers/{id}/hard-skills
+    public function getProviderHardSkills(int $providerId): array
+    {
+        return $this->hardSkillRepository->findByProviderId($providerId);
+    }
+
+    // POST /providers/{id}/hard-skills
+    public function addHardSkillToProvider(int $providerId, int $skillId): bool
+    {
+        try {
+            $this->hardSkillRepository->addSkillToProvider($providerId, $skillId);
+            return true;
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
+
+    // DELETE /providers/{id}/hard-skills/{skillId}
+    public function removeHardSkillFromProvider(int $providerId, int $skillId): bool
+    {
+        try {
+            $this->hardSkillRepository->removeSkillFromProvider($providerId, $skillId);
+            return true;
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
+
+    // GET /providers/{id}/jobs
+    public function getProviderJobs(int $providerId): array
+    {
+        return $this->jobRepository->findByProviderId($providerId);
+    }
+
+    // POST /providers/{id}/jobs
+    public function addJobToProvider(int $providerId, int $jobId): bool
+    {
+        try {
+            $this->jobRepository->addJobToProvider($providerId, $jobId);
+            return true;
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
+
+    // DELETE /providers/{id}/jobs/{jobId}
+    public function removeJobFromProvider(int $providerId, int $jobId): bool
+    {
+        try {
+            $this->jobRepository->removeJobFromProvider($providerId, $jobId);
+            return true;
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
+
+    // GET /providers/{id}/languages
+    public function getProviderLanguages(int $providerId): array
+    {
+        return $this->languageRepository->findByProviderId($providerId);
+    }
+
+    // POST /providers/{id}/languages
+    public function addLanguageToProvider(int $providerId, int $languageId): bool
+    {
+        try {
+            $this->languageRepository->addLanguageToProvider($providerId, $languageId);
+            return true;
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
+
+    // DELETE /providers/{id}/languages/{languageId}
+    public function removeLanguageFromProvider(int $providerId, int $languageId): bool
+    {
+        try {
+            $this->languageRepository->removeLanguageFromProvider($providerId, $languageId);
+            return true;
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
+
+    // GET /providers/{id}/education
+    public function getProviderEducation(int $providerId): array
+    {
+        return $this->educationRepository->findByProviderId($providerId);
+    }
+
+    // GET /providers/{id}/experience
+    public function getProviderExperience(int $providerId): array
+    {
+        return $this->experienceRepository->findByProviderId($providerId);
+    }
+
+    // GET /countries
+    public function getAllCountries(): array
+    {
+        return $this->countryRepository->findAll();
+    }
+
+    // POST /providers/{providerId}/experience/{experienceId}/logo
+    public function uploadExperienceLogo(int $providerId, int $experienceId, array $file): array
+    {
+        try {
+            $experience = $this->experienceRepository->findById($experienceId);
+            if (!$experience || $experience->getProviderId() !== $providerId) {
+                return [
+                    'success' => false,
+                    'message' => 'Expérience non trouvée'
+                ];
+            }
+
+            if ($experience->getCompanyLogo()) {
+                $this->fileUploadService->deleteFile($experience->getCompanyLogo());
+            }
+
+            $newLogoUrl = $this->fileUploadService->uploadExperienceLogo(
+                $file,
+                $experienceId
+            );
+
+            $experience->setCompanyLogo($newLogoUrl);
+            $this->experienceRepository->update($experience);
+
+            return [
+                'success' => true,
+                'message' => 'Logo d\'entreprise mis à jour avec succès',
+                'logo' => $newLogoUrl
+            ];
+        } catch (\Exception $e) {
+            return [
+                'success' => false,
+                'message' => 'Erreur lors de l\'upload: ' . $e->getMessage()
+            ];
+        }
+    }
+
+    // POST /providers/{providerId}/education/{educationId}/logo
+    public function uploadEducationLogo(int $providerId, int $educationId, array $file): array
+    {
+        try {
+            $education = $this->educationRepository->findById($educationId);
+            if (!$education || $education->getProviderId() !== $providerId) {
+                return [
+                    'success' => false,
+                    'message' => 'Éducation non trouvée'
+                ];
+            }
+
+            if ($education->getInstitutionImage()) {
+                $this->fileUploadService->deleteFile($education->getInstitutionImage());
+            }
+
+            $newLogoUrl = $this->fileUploadService->uploadEducationLogo(
+                $file,
+                $educationId
+            );
+
+            $education->setInstitutionImage($newLogoUrl);
+            $this->educationRepository->update($education);
+
+            return [
+                'success' => true,
+                'message' => 'Logo d\'institution mis à jour avec succès',
+                'logo' => $newLogoUrl
+            ];
+        } catch (\Exception $e) {
+            return [
+                'success' => false,
+                'message' => 'Erreur lors de l\'upload: ' . $e->getMessage()
+            ];
+        }
+    }
+
+    // POST /providers/{providerId}/completed-works/{workId}/media
+    public function uploadCompletedWorkMedia(int $providerId, int $workId, array $file): array
+    {
+        try {
+            $work = $this->completedWorkRepository->findById($workId);
+            if (!$work || $work->getProviderId() !== $providerId) {
+                return [
+                    'success' => false,
+                    'message' => 'Travail réalisé non trouvé'
+                ];
+            }
+
+            $newMediaUrl = $this->fileUploadService->uploadCompletedWorkMedia(
+                $file,
+                $workId
+            );
+
+            return [
+                'success' => true,
+                'message' => 'Média uploadé avec succès',
+                'media' => $newMediaUrl
+            ];
+        } catch (\Exception $e) {
+            return [
+                'success' => false,
+                'message' => 'Erreur lors de l\'upload: ' . $e->getMessage()
+            ];
+        }
     }
 }

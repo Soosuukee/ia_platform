@@ -1,0 +1,42 @@
+[
+  {
+    "jobId": 1,
+    "title": "Architecte de Solution IA"
+  },
+  {
+    "jobId": 2,
+    "title": "Ingénieure Machine Learning"
+  },
+  {
+    "jobId": 3,
+    "title": "Data Scientist"
+  },
+  {
+    "jobId": 4,
+    "title": "Chercheur en IA"
+  },
+  {
+    "jobId": 5,
+    "title": "Ingénieure Vision par Ordinateur"
+  },
+  {
+    "jobId": 6,
+    "title": "Spécialiste Deep Learning"
+  },
+  {
+    "jobId": 7,
+    "title": "Expert en Optimisation GPU"
+  },
+  {
+    "jobId": 8,
+    "title": "Consultant en Infrastructure IA"
+  },
+  {
+    "jobId": 9,
+    "title": "Développeur d'Algorithmes Avancés"
+  },
+  {
+    "jobId": 10,
+    "title": "Spécialiste en Traitement du Langage Naturel"
+  }
+]

@@ -1,0 +1,20 @@
+[
+  { "provider_id": 1, "language_id": 2 },
+  { "provider_id": 1, "language_id": 247 },
+  { "provider_id": 1, "language_id": 239 },
+
+  { "provider_id": 2, "language_id": 1 },
+  { "provider_id": 2, "language_id": 2 },
+
+  { "provider_id": 3, "language_id": 3 },
+  { "provider_id": 3, "language_id": 2 },
+
+  { "provider_id": 4, "language_id": 235 },
+  { "provider_id": 4, "language_id": 2 },
+
+  { "provider_id": 5, "language_id": 5 },
+  { "provider_id": 5, "language_id": 2 },
+
+  { "provider_id": 6, "language_id": 159 },
+  { "provider_id": 6, "language_id": 2 }
+]

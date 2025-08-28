@@ -1,0 +1,302 @@
+[
+  {
+    "languageId": 1,
+    "name": "Français"
+  },
+  {
+    "languageId": 2,
+    "name": "Anglais"
+  },
+  {
+    "languageId": 3,
+    "name": "Espagnol"
+  },
+  {
+    "languageId": 4,
+    "name": "Allemand"
+  },
+  {
+    "languageId": 5,
+    "name": "Italien"
+  },
+  {
+    "languageId": 6,
+    "name": "Portugais"
+  },
+  {
+    "languageId": 7,
+    "name": "Néerlandais"
+  },
+  {
+    "languageId": 8,
+    "name": "Suédois"
+  },
+  {
+    "languageId": 9,
+    "name": "Norvégien"
+  },
+  {
+    "languageId": 10,
+    "name": "Danois"
+  },
+  {
+    "languageId": 11,
+    "name": "Finnois"
+  },
+  {
+    "languageId": 12,
+    "name": "Islandais"
+  },
+  {
+    "languageId": 13,
+    "name": "Russe"
+  },
+  {
+    "languageId": 14,
+    "name": "Polonais"
+  },
+  {
+    "languageId": 15,
+    "name": "Tchèque"
+  },
+  {
+    "languageId": 16,
+    "name": "Slovaque"
+  },
+  {
+    "languageId": 17,
+    "name": "Slovène"
+  },
+  {
+    "languageId": 18,
+    "name": "Croate"
+  },
+  {
+    "languageId": 19,
+    "name": "Serbe"
+  },
+  {
+    "languageId": 20,
+    "name": "Bosnien"
+  },
+  {
+    "languageId": 21,
+    "name": "Monténégrin"
+  },
+  {
+    "languageId": 22,
+    "name": "Macédonien"
+  },
+  {
+    "languageId": 23,
+    "name": "Bulgare"
+  },
+  {
+    "languageId": 24,
+    "name": "Roumain"
+  },
+  {
+    "languageId": 25,
+    "name": "Hongrois"
+  },
+  {
+    "languageId": 26,
+    "name": "Grec"
+  },
+  {
+    "languageId": 27,
+    "name": "Turc"
+  },
+  {
+    "languageId": 28,
+    "name": "Albanais"
+  },
+  {
+    "languageId": 29,
+    "name": "Arménien"
+  },
+  {
+    "languageId": 30,
+    "name": "Géorgien"
+  },
+  {
+    "languageId": 31,
+    "name": "Hébreu"
+  },
+  {
+    "languageId": 32,
+    "name": "Arabe (standard)"
+  },
+  {
+    "languageId": 33,
+    "name": "Arabe égyptien"
+  },
+  {
+    "languageId": 34,
+    "name": "Arabe maghrébin"
+  },
+  {
+    "languageId": 35,
+    "name": "Arabe levantin"
+  },
+  {
+    "languageId": 36,
+    "name": "Persan (Farsi)"
+  },
+  {
+    "languageId": 37,
+    "name": "Dari"
+  },
+  {
+    "languageId": 38,
+    "name": "Pachto"
+  },
+  {
+    "languageId": 39,
+    "name": "Ourdou"
+  },
+  {
+    "languageId": 40,
+    "name": "Hindi"
+  },
+  {
+    "languageId": 41,
+    "name": "Bengali"
+  },
+  {
+    "languageId": 42,
+    "name": "Pendjabi"
+  },
+  {
+    "languageId": 43,
+    "name": "Gujarati"
+  },
+  {
+    "languageId": 44,
+    "name": "Marathi"
+  },
+  {
+    "languageId": 45,
+    "name": "Tamoul"
+  },
+  {
+    "languageId": 46,
+    "name": "Télougou"
+  },
+  {
+    "languageId": 47,
+    "name": "Kannada"
+  },
+  {
+    "languageId": 48,
+    "name": "Malayalam"
+  },
+  {
+    "languageId": 49,
+    "name": "Sinhala"
+  },
+  {
+    "languageId": 50,
+    "name": "Thaï"
+  },
+  {
+    "languageId": 51,
+    "name": "Laotien"
+  },
+  {
+    "languageId": 52,
+    "name": "Khmer"
+  },
+  {
+    "languageId": 53,
+    "name": "Birman (Myanmar)"
+  },
+  {
+    "languageId": 54,
+    "name": "Vietnamien"
+  },
+  {
+    "languageId": 55,
+    "name": "Indonésien"
+  },
+  {
+    "languageId": 56,
+    "name": "Malais"
+  },
+  {
+    "languageId": 57,
+    "name": "Tagalog (Philippin)"
+  },
+  {
+    "languageId": 58,
+    "name": "Coréen"
+  },
+  {
+    "languageId": 59,
+    "name": "Japonais"
+  },
+  {
+    "languageId": 60,
+    "name": "Mandarin (Chinois simplifié)"
+  },
+  {
+    "languageId": 61,
+    "name": "Cantonais (Chinois traditionnel)"
+  },
+  {
+    "languageId": 62,
+    "name": "Taïwanais (Hokkien)"
+  },
+  {
+    "languageId": 63,
+    "name": "Tibétain"
+  },
+  {
+    "languageId": 64,
+    "name": "Mongol"
+  },
+  {
+    "languageId": 65,
+    "name": "Kazakh"
+  },
+  {
+    "languageId": 66,
+    "name": "Ouzbek"
+  },
+  {
+    "languageId": 67,
+    "name": "Turkmène"
+  },
+  {
+    "languageId": 68,
+    "name": "Kirghiz"
+  },
+  {
+    "languageId": 69,
+    "name": "Tadjik"
+  },
+  {
+    "languageId": 70,
+    "name": "Swahili"
+  },
+  {
+    "languageId": 71,
+    "name": "Haoussa"
+  },
+  {
+    "languageId": 72,
+    "name": "Yoruba"
+  },
+  {
+    "languageId": 73,
+    "name": "Zoulou"
+  },
+  {
+    "languageId": 74,
+    "name": "Xhosa"
+  },
+  {
+    "languageId": 75,
+    "name": "Afrikaans"
+  }
+]

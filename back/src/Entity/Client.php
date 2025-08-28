@@ -14,27 +14,42 @@ class Client implements AccountHolder
     private string $lastName;
     private string $email;
     private string $password;
-    private string $country;
-    private string $role;
-    private DateTimeImmutable $createdAt;
+    private ?string $profilePicture = null;
+    private DateTimeImmutable $joinedAt;
+    private string $slug;
+    private int $countryId;
+    private string $city;
+    private ?string $state = null;
+    private ?string $postalCode = null;
+    private ?string $address = null;
 
     public function __construct(
         string $firstName,
         string $lastName,
         string $email,
         string $password,
-        string $country = 'unknown'
+        int $countryId,
+        string $city,
+        ?string $profilePicture = null,
+        ?string $slug = null,
+        ?string $state = null,
+        ?string $postalCode = null,
+        ?string $address = null
     ) {
-        $this->firstName = $firstName;
-        $this->lastName = $lastName;
-        $this->email = $email;
+        $this->firstName = trim($firstName);
+        $this->lastName = trim($lastName);
+        $this->email = trim($email);
         $this->password = $password;
-        $this->country = $country;
-        $this->role = 'client';
-        $this->createdAt = new DateTimeImmutable();
+        $this->countryId = $countryId;
+        $this->city = trim($city);
+        $this->state = $state ? trim($state) : null;
+        $this->postalCode = $postalCode ? trim($postalCode) : null;
+        $this->address = $address ? trim($address) : null;
+        $this->profilePicture = $profilePicture;
+        $this->joinedAt = new DateTimeImmutable();
+        $this->slug = $slug ?? '';
     }
 
-    // Getters
     public function getId(): int
     {
         return $this->id;
@@ -60,44 +75,73 @@ class Client implements AccountHolder
         return $this->password;
     }
 
-    public function getCountry(): string
+    public function getProfilePicture(): ?string
     {
-        return $this->country;
+        return $this->profilePicture;
     }
+
+    public function setProfilePicture(?string $profilePicture): void
+    {
+        $this->profilePicture = $profilePicture;
+    }
+
+    public function getJoinedAt(): DateTimeImmutable
+    {
+        return $this->joinedAt;
+    }
+
+    public function getSlug(): string
+    {
+        return $this->slug;
+    }
+
+    public function setSlug(string $slug): void
+    {
+        $this->slug = $slug;
+    }
+
+    public function getCountryId(): int
+    {
+        return $this->countryId;
+    }
+
+    public function getCity(): string
+    {
+        return $this->city;
+    }
+
+    public function getState(): ?string
+    {
+        return $this->state;
+    }
+
+    public function getPostalCode(): ?string
+    {
+        return $this->postalCode;
+    }
+
+    public function getAddress(): ?string
+    {
+        return $this->address;
+    }
+
+    // Méthodes requises par AccountHolder
+    public function verifyPassword(string $password): bool
+    {
+        return false; // À implémenter selon vos besoins
+    }
+
+
 
     public function getRole(): string
     {
-        return $this->role;
+        return 'client';
     }
+
+
 
     public function getCreatedAt(): DateTimeImmutable
     {
-        return $this->createdAt;
-    }
-
-    // Setters
-    public function setFirstName(string $firstName): void
-    {
-        $this->firstName = $firstName;
-    }
-
-    public function setLastName(string $lastName): void
-    {
-        $this->lastName = $lastName;
-    }
-
-    public function setEmail(string $email): void
-    {
-        $this->email = $email;
-    }
-
-    public function setPassword(string $password): void
-    {
-        $this->password = $password;
-    }
-
-    public function setCountry(string $country): void
-    {
-        $this->country = $country;
+        return $this->joinedAt;
     }
 }

@@ -25,8 +25,9 @@ class AvailabilitySlotController
     // GET /providers/{providerId}/slots
     public function index(int $providerId): void
     {
-        session_start();
+        
         $sessionProviderId = $_SESSION['provider_id'] ?? null;
+
         if ($providerId !== $sessionProviderId) {
             http_response_code(403);
             echo json_encode(['error' => 'Unauthorized']);
@@ -52,31 +53,28 @@ class AvailabilitySlotController
     // POST /providers/{providerId}/slots
     public function store(int $providerId): void
     {
-        session_start();
+        
         $sessionProviderId = $_SESSION['provider_id'] ?? null;
+
         if ($providerId !== $sessionProviderId) {
             http_response_code(403);
             echo json_encode(['error' => 'Unauthorized']);
             exit;
         }
 
-        // CSRF protection
-        $csrfToken = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
-        if (!hash_equals($_SESSION['csrf_token'] ?? '', $csrfToken)) {
-            http_response_code(403);
-            echo json_encode(['error' => 'Invalid CSRF token']);
+        $data = json_decode(file_get_contents('php://input'), true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Invalid JSON']);
             exit;
         }
-
-        $data = json_decode(file_get_contents('php://input'), true);
 
         if (empty($data['startTime']) || empty($data['endTime'])) {
             http_response_code(400);
-            echo json_encode(['error' => 'Missing fields']);
+            echo json_encode(['error' => 'Missing required fields']);
             exit;
         }
 
-        // Validate DateTime inputs
         try {
             $startTime = new DateTimeImmutable($data['startTime']);
             $endTime = new DateTimeImmutable($data['endTime']);
@@ -99,9 +97,7 @@ class AvailabilitySlotController
         }
 
         $slot = new AvailabilitySlot($providerId, $startTime, $endTime, false);
-
         $this->slotRepo->saveForProvider($providerId, $slot);
-        $this->logAction("Provider {$providerId} created availability slot {$slot->getId()}");
 
         http_response_code(201);
         echo json_encode(['message' => 'Slot created', 'id' => $slot->getId()]);
@@ -111,16 +107,8 @@ class AvailabilitySlotController
     // PUT /slots/{id}
     public function update(int $slotId): void
     {
-        session_start();
+        
         $sessionProviderId = $_SESSION['provider_id'] ?? null;
-
-        // CSRF protection
-        $csrfToken = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
-        if (!hash_equals($_SESSION['csrf_token'] ?? '', $csrfToken)) {
-            http_response_code(403);
-            echo json_encode(['error' => 'Invalid CSRF token']);
-            exit;
-        }
 
         $slot = $this->slotRepo->findById($slotId);
         if (!$slot) {
@@ -136,14 +124,18 @@ class AvailabilitySlotController
         }
 
         $data = json_decode(file_get_contents('php://input'), true);
-
-        if (empty($data['startTime']) || empty($data['endTime']) || !isset($data['isBooked'])) {
+        if (json_last_error() !== JSON_ERROR_NONE) {
             http_response_code(400);
-            echo json_encode(['error' => 'Missing fields']);
+            echo json_encode(['error' => 'Invalid JSON']);
             exit;
         }
 
-        // Validate DateTime inputs
+        if (empty($data['startTime']) || empty($data['endTime']) || !isset($data['isBooked'])) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Missing required fields']);
+            exit;
+        }
+
         try {
             $startTime = new DateTimeImmutable($data['startTime']);
             $endTime = new DateTimeImmutable($data['endTime']);
@@ -163,8 +155,6 @@ class AvailabilitySlotController
         $slot->setIsBooked((bool) $data['isBooked']);
 
         $this->slotRepo->update($slot);
-        $this->logAction("Provider {$sessionProviderId} updated availability slot {$slotId}");
-
         echo json_encode(['message' => 'Slot updated']);
         exit;
     }
@@ -172,16 +162,8 @@ class AvailabilitySlotController
     // PATCH /slots/{id}
     public function patch(int $slotId): void
     {
-        session_start();
+        
         $sessionProviderId = $_SESSION['provider_id'] ?? null;
-
-        // CSRF protection
-        $csrfToken = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
-        if (!hash_equals($_SESSION['csrf_token'] ?? '', $csrfToken)) {
-            http_response_code(403);
-            echo json_encode(['error' => 'Invalid CSRF token']);
-            exit;
-        }
 
         $slot = $this->slotRepo->findById($slotId);
         if (!$slot) {
@@ -197,11 +179,23 @@ class AvailabilitySlotController
         }
 
         $data = json_decode(file_get_contents('php://input'), true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Invalid JSON']);
+            exit;
+        }
 
         try {
             if (isset($data['startTime'])) {
                 $startTime = new DateTimeImmutable($data['startTime']);
-                if (isset($data['endTime']) && $startTime >= new DateTimeImmutable($data['endTime'])) {
+                if (isset($data['endTime'])) {
+                    $endTime = new DateTimeImmutable($data['endTime']);
+                    if ($startTime >= $endTime) {
+                        http_response_code(400);
+                        echo json_encode(['error' => 'End time must be after start time']);
+                        exit;
+                    }
+                } elseif ($startTime >= $slot->getEndTime()) {
                     http_response_code(400);
                     echo json_encode(['error' => 'End time must be after start time']);
                     exit;
@@ -228,25 +222,15 @@ class AvailabilitySlotController
         }
 
         $this->slotRepo->update($slot);
-        $this->logAction("Provider {$sessionProviderId} patched availability slot {$slotId}");
-
-        echo json_encode(['message' => 'Slot patched']);
+        echo json_encode(['message' => 'Slot updated']);
         exit;
     }
 
     // DELETE /slots/{id}
     public function destroy(int $slotId): void
     {
-        session_start();
+        
         $sessionProviderId = $_SESSION['provider_id'] ?? null;
-
-        // CSRF protection
-        $csrfToken = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
-        if (!hash_equals($_SESSION['csrf_token'] ?? '', $csrfToken)) {
-            http_response_code(403);
-            echo json_encode(['error' => 'Invalid CSRF token']);
-            exit;
-        }
 
         $slot = $this->slotRepo->findById($slotId);
         if (!$slot) {
@@ -262,15 +246,7 @@ class AvailabilitySlotController
         }
 
         $this->slotRepo->delete($slotId);
-        $this->logAction("Provider {$sessionProviderId} deleted availability slot {$slotId}");
-
         echo json_encode(['message' => 'Slot deleted']);
         exit;
-    }
-
-    private function logAction(string $message): void
-    {
-        $logMessage = sprintf("[%s] %s\n", date('Y-m-d H:i:s'), $message);
-        file_put_contents(__DIR__ . '/../../logs/provider_actions.log', $logMessage, FILE_APPEND);
     }
 }

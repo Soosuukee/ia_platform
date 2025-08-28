@@ -1,0 +1,102 @@
+[
+  {
+    "userId": 1,
+    "providerId": 1,
+    "email": "jensen.huang@nvidia.com",
+    "password": "test123",
+    "role": "provider",
+    "isActive": true,
+    "createdAt": "2024-01-01T00:00:00Z",
+    "lastLogin": "2024-01-15T10:30:00Z"
+  },
+  {
+    "userId": 2,
+    "providerId": 2,
+    "email": "marie.dubois@example.com",
+    "password": "test123",
+    "role": "provider",
+    "isActive": true,
+    "createdAt": "2024-01-02T00:00:00Z",
+    "lastLogin": "2024-01-14T15:45:00Z"
+  },
+  {
+    "userId": 3,
+    "clientId": 1,
+    "email": "alexandre.martin@example.com",
+    "password": "test123",
+    "role": "client",
+    "isActive": true,
+    "createdAt": "2024-01-10T00:00:00Z",
+    "lastLogin": "2024-01-15T09:20:00Z"
+  },
+  {
+    "userId": 4,
+    "adminId": 1,
+    "email": "admin@skai.com",
+    "password": "test123",
+    "role": "admin",
+    "isActive": true,
+    "createdAt": "2024-01-01T00:00:00Z",
+    "lastLogin": "2024-01-15T11:00:00Z"
+  },
+  {
+    "userId": 5,
+    "clientId": 2,
+    "email": "sarah.johnson@example.com",
+    "password": "test123",
+    "role": "client",
+    "isActive": true,
+    "createdAt": "2024-01-12T00:00:00Z",
+    "lastLogin": "2024-01-16T14:30:00Z"
+  },
+  {
+    "userId": 6,
+    "clientId": 3,
+    "email": "yuki.tanaka@example.com",
+    "password": "test123",
+    "role": "client",
+    "isActive": true,
+    "createdAt": "2024-01-15T00:00:00Z",
+    "lastLogin": "2024-01-17T09:15:00Z"
+  },
+  {
+    "userId": 7,
+    "clientId": 4,
+    "email": "maria.garcia@example.com",
+    "password": "test123",
+    "role": "client",
+    "isActive": true,
+    "createdAt": "2024-01-18T00:00:00Z",
+    "lastLogin": "2024-01-20T11:45:00Z"
+  },
+  {
+    "userId": 8,
+    "clientId": 5,
+    "email": "david.chen@example.com",
+    "password": "test123",
+    "role": "client",
+    "isActive": true,
+    "createdAt": "2024-01-20T00:00:00Z",
+    "lastLogin": "2024-01-22T16:20:00Z"
+  },
+  {
+    "userId": 9,
+    "clientId": 6,
+    "email": "emma.wilson@example.com",
+    "password": "test123",
+    "role": "client",
+    "isActive": true,
+    "createdAt": "2024-01-22T00:00:00Z",
+    "lastLogin": "2024-01-24T13:10:00Z"
+  },
+  {
+    "userId": 10,
+    "adminId": 2,
+    "email": "support@skai.com",
+    "password": "test123",
+    "role": "admin",
+    "isActive": true,
+    "createdAt": "2024-01-05T00:00:00Z",
+    "lastLogin": "2024-01-18T14:30:00Z"
+  }
+]

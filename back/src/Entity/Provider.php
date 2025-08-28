@@ -14,54 +14,41 @@ class Provider implements AccountHolder
     private string $lastName;
     private string $email;
     private string $password;
-    private string $country;
     private ?string $profilePicture = null;
-    private string $role;
-    private DateTimeImmutable $createdAt;
-    private string $title;
-    private string $presentation;
-
-    /**
-     * @var AvailabilitySlot[]
-     */
-    private array $availabilitySlots = [];
-
-    /**
-     * @var Skill[]
-     */
-    private array $skills = [];
-
-    /**
-     * @var string[]
-     */
-    private array $socialLinks = []; // Nouveau champ pour les liens sociaux
+    private DateTimeImmutable $joinedAt;
+    private string $slug;
+    private int $countryId;
+    private string $city;
+    private ?string $state = null;
+    private ?string $postalCode = null;
+    private ?string $address = null;
 
     public function __construct(
         string $firstName,
         string $lastName,
         string $email,
         string $password,
-        string $title,
-        string $presentation,
-        string $country,
-        ?string $profilePicture,
-        string $role = 'provider',
-        array $socialLinks = [] // Paramètre optionnel pour les liens sociaux
+        int $countryId,
+        string $city,
+        ?string $profilePicture = null,
+        ?string $slug = null,
+        ?string $state = null,
+        ?string $postalCode = null,
+        ?string $address = null
     ) {
-        $this->firstName = $firstName;
-        $this->lastName = $lastName;
-        $this->email = $email;
+        $this->firstName = trim($firstName);
+        $this->lastName = trim($lastName);
+        $this->email = trim($email);
         $this->password = $password;
-        $this->title = $title;
-        $this->presentation = $presentation;
-        $this->country = $country;
+        $this->countryId = $countryId;
+        $this->city = trim($city);
+        $this->state = $state ? trim($state) : null;
+        $this->postalCode = $postalCode ? trim($postalCode) : null;
+        $this->address = $address ? trim($address) : null;
         $this->profilePicture = $profilePicture;
-        $this->role = $role;
-        $this->createdAt = new DateTimeImmutable();
-        $this->socialLinks = $socialLinks; // Initialisation des liens sociaux
+        $this->joinedAt = new DateTimeImmutable();
+        $this->slug = $slug ?? '';
     }
-
-    // Getters
 
     public function getId(): int
     {
@@ -88,95 +75,9 @@ class Provider implements AccountHolder
         return $this->password;
     }
 
-    public function getCountry(): string
-    {
-        return $this->country;
-    }
-
-    public function getRole(): string
-    {
-        return $this->role;
-    }
-
-    public function getCreatedAt(): DateTimeImmutable
-    {
-        return $this->createdAt;
-    }
-
-    public function getTitle(): string
-    {
-        return $this->title;
-    }
-
-    public function getPresentation(): string
-    {
-        return $this->presentation;
-    }
-
     public function getProfilePicture(): ?string
     {
         return $this->profilePicture;
-    }
-
-    /**
-     * @return AvailabilitySlot[]
-     */
-    public function getAvailabilitySlots(): array
-    {
-        return $this->availabilitySlots;
-    }
-
-    /**
-     * @return Skill[]
-     */
-    public function getSkills(): array
-    {
-        return $this->skills;
-    }
-
-    /**
-     * @return string[]
-     */
-    public function getSocialLinks(): array
-    {
-        return $this->socialLinks; // Nouveau getter
-    }
-
-    // Setters
-
-    public function setFirstName(string $firstName): void
-    {
-        $this->firstName = $firstName;
-    }
-
-    public function setLastName(string $lastName): void
-    {
-        $this->lastName = $lastName;
-    }
-
-    public function setEmail(string $email): void
-    {
-        $this->email = $email;
-    }
-
-    public function setPassword(string $password): void
-    {
-        $this->password = $password;
-    }
-
-    public function setCountry(string $country): void
-    {
-        $this->country = $country;
-    }
-
-    public function setTitle(string $title): void
-    {
-        $this->title = $title;
-    }
-
-    public function setPresentation(string $presentation): void
-    {
-        $this->presentation = $presentation;
     }
 
     public function setProfilePicture(?string $profilePicture): void
@@ -184,23 +85,61 @@ class Provider implements AccountHolder
         $this->profilePicture = $profilePicture;
     }
 
-    public function setAvailabilitySlots(array $slots): void
+    public function getJoinedAt(): DateTimeImmutable
     {
-        $this->availabilitySlots = $slots;
+        return $this->joinedAt;
     }
 
-    public function addAvailabilitySlot(AvailabilitySlot $slot): void
+    public function getSlug(): string
     {
-        $this->availabilitySlots[] = $slot;
+        return $this->slug;
     }
 
-    public function setSkills(array $skills): void
+    public function setSlug(string $slug): void
     {
-        $this->skills = $skills;
+        $this->slug = $slug;
     }
 
-    public function setSocialLinks(array $socialLinks): void
+    public function getCountryId(): int
     {
-        $this->socialLinks = $socialLinks; // Nouveau setter
+        return $this->countryId;
+    }
+
+    public function getCity(): string
+    {
+        return $this->city;
+    }
+
+    public function getState(): ?string
+    {
+        return $this->state;
+    }
+
+    public function getPostalCode(): ?string
+    {
+        return $this->postalCode;
+    }
+
+    public function getAddress(): ?string
+    {
+        return $this->address;
+    }
+
+    // Méthodes requises par AccountHolder
+    public function verifyPassword(string $password): bool
+    {
+        return false; // À implémenter selon vos besoins
+    }
+
+
+
+    public function getRole(): string
+    {
+        return 'provider';
+    }
+
+    public function getCreatedAt(): DateTimeImmutable
+    {
+        return $this->joinedAt;
     }
 }

@@ -50,111 +50,116 @@ class ProviderDashboardController
 
     public function dashboard(int $id): void
     {
-        session_start();
+
         $sessionProviderId = $_SESSION['provider_id'] ?? null;
-        session_write_close();
+
+        // Log pour debug
+        error_log("Dashboard access attempt: requested_id=$id, session_provider_id=$sessionProviderId, session_id=" . session_id());
+        error_log("Session data: " . print_r($_SESSION, true));
 
         if ($sessionProviderId !== $id) {
+            error_log("Authentication failed: session provider ID ($sessionProviderId) does not match requested ID ($id)");
             http_response_code(403);
-            echo json_encode(['error' => 'Not logged in']);
+            echo json_encode(['error' => 'Unauthorized - Session mismatch']);
             exit;
-        }
-
-        if (in_array($_SERVER['REQUEST_METHOD'], ['PUT', 'PATCH', 'DELETE'])) {
-            $csrfToken = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
-            if (!hash_equals($_SESSION['csrf_token'] ?? '', $csrfToken)) {
-                http_response_code(403);
-                echo json_encode(['error' => 'Invalid CSRF token']);
-                exit;
-            }
         }
 
         $provider = $this->providerRepository->findById($id);
         if (!$provider || $provider->getRole() !== 'provider') {
+            error_log("Provider not found or wrong role: provider_id=$id");
             http_response_code(403);
-            echo json_encode(['error' => 'Access denied']);
+            echo json_encode(['error' => 'Access denied - Provider not found or wrong role']);
             exit;
         }
 
         $data = json_decode(file_get_contents('php://input'), true);
-        if (json_last_error() !== JSON_ERROR_NONE && in_array($_SERVER['REQUEST_METHOD'], ['PUT', 'PATCH', 'DELETE'])) {
+        if (in_array($_SERVER['REQUEST_METHOD'], ['PUT', 'PATCH', 'DELETE']) && json_last_error() !== JSON_ERROR_NONE) {
             http_response_code(400);
             echo json_encode(['error' => 'Invalid JSON']);
             exit;
         }
 
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-            $skills = $this->skillRepository->findAllSkillsByProviderId($id, 10);
-            $slots = $this->slotRepository->findAvailableByProviderId($id, 10);
-            $works = $this->workRepository->findAllByProviderId($id, 10);
-            $reviews = $this->reviewRepository->findAllByProviderId($id, 10);
-            $requests = $this->requestRepository->findAllByProviderId($id, 10);
-            $diplomas = $this->diplomaRepository->findAllByProviderId($id, 10);
-            $services = $this->serviceRepository->findByProviderId($id, 10);
+            try {
+                $skills = $this->skillRepository->findAllSkillsByProviderId($id, 10);
+                $slots = $this->slotRepository->findAvailableByProviderId($id, 10);
+                $works = $this->workRepository->findAllByProviderId($id, 10);
+                $reviews = $this->reviewRepository->findAllByProviderId($id, 10);
+                $requests = $this->requestRepository->findAllByProviderId($id, 10);
+                $diplomas = $this->diplomaRepository->findAllByProviderId($id, 10);
+                $services = $this->serviceRepository->findByProviderId($id, 10);
 
-            echo json_encode([
-                'message' => 'Welcome to your provider dashboard',
-                'provider' => [
-                    'id' => $provider->getId(),
-                    'firstName' => $provider->getFirstName(),
-                    'lastName' => $provider->getLastName(),
-                    'email' => $provider->getEmail(),
-                    'title' => $provider->getTitle(),
-                    'presentation' => $provider->getPresentation(),
-                    'country' => $provider->getCountry(),
-                    'profilePicture' => $provider->getProfilePicture(),
-                    'socialLinks' => $provider->getSocialLinks(), // Ajout des liens sociaux
-                    'createdAt' => $provider->getCreatedAt()->format('Y-m-d H:i:s'),
-                    'skills' => array_map(fn($s) => [
-                        'id' => $s->getId(),
-                        'name' => $s->getName(),
-                    ], $skills),
-                    'availabilitySlots' => array_map(fn($s) => [
-                        'id' => $s->getId(),
-                        'start' => $s->getStartTime()->format('Y-m-d H:i:s'),
-                        'end' => $s->getEndTime()->format('Y-m-d H:i:s'),
-                        'isBooked' => $s->isBooked(),
-                    ], $slots),
-                    'completedWorks' => array_map(fn($w) => [
-                        'id' => $w->getId(),
-                        'company' => $w->getCompany(),
-                        'title' => $w->getTitle(),
-                        'description' => $w->getDescription(),
-                        'startDate' => $w->getStartDate()->format('Y-m-d'),
-                        'endDate' => $w->getEndDate()?->format('Y-m-d'),
-                    ], $works),
-                    'reviews' => array_map(fn($r) => [
-                        'id' => $r->getId(),
-                        'rating' => $r->getRating(),
-                        'content' => $r->getContent(),
-                        'createdAt' => $r->getCreatedAt()->format('Y-m-d H:i:s'),
-                    ], $reviews),
-                    'requests' => array_map(fn($r) => [
-                        'id' => $r->getRequestId(),
-                        'title' => $r->getTitle(),
-                        'description' => $r->getDescription(),
-                        'status' => $r->getStatus(),
-                        'createdAt' => $r->getCreatedAt()->format('Y-m-d H:i:s'),
-                    ], $requests),
-                    'diplomas' => array_map(fn($d) => [
-                        'id' => $d->getId(),
-                        'title' => $d->getTitle(),
-                        'institution' => $d->getInstitution(),
-                        'description' => $d->getDescription(),
-                        'startDate' => $d->getStartDate()?->format('Y-m-d'),
-                        'endDate' => $d->getEndDate()?->format('Y-m-d'),
-                    ], $diplomas),
-                    'services' => array_map(fn($s) => [
-                        'id' => $s->getId(),
-                        'title' => $s->getTitle(),
-                        'description' => $s->getDescription(),
-                        'minPrice' => $s->getMinPrice(),
-                        'maxPrice' => $s->getMaxPrice(),
-                        'duration' => $s->getDuration(),
-                    ], $services),
-                ],
-            ]);
-            exit;
+                error_log("Dashboard data loaded successfully for provider $id");
+
+                echo json_encode([
+                    'message' => 'Welcome to your provider dashboard',
+                    'provider' => [
+                        'id' => $provider->getId(),
+                        'firstName' => $provider->getFirstName(),
+                        'lastName' => $provider->getLastName(),
+                        'email' => $provider->getEmail(),
+                        'title' => $provider->getTitle(),
+                        'presentation' => $provider->getPresentation(),
+                        'country' => $provider->getCountry(),
+                        'profilePicture' => $provider->getProfilePicture(),
+                        'socialLinks' => $provider->getSocialLinks(),
+                        'createdAt' => $provider->getCreatedAt()->format('Y-m-d H:i:s'),
+                        'skills' => array_map(fn($s) => [
+                            'id' => $s->getId(),
+                            'name' => $s->getName(),
+                        ], $skills),
+                        'availabilitySlots' => array_map(fn($s) => [
+                            'id' => $s->getId(),
+                            'start' => $s->getStartTime()->format('Y-m-d H:i:s'),
+                            'end' => $s->getEndTime()->format('Y-m-d H:i:s'),
+                            'isBooked' => $s->isBooked(),
+                        ], $slots),
+                        'completedWorks' => array_map(fn($w) => [
+                            'id' => $w->getId(),
+                            'company' => $w->getCompany(),
+                            'title' => $w->getTitle(),
+                            'description' => $w->getDescription(),
+                            'startDate' => $w->getStartDate()->format('Y-m-d'),
+                            'endDate' => $w->getEndDate()?->format('Y-m-d'),
+                        ], $works),
+                        'reviews' => array_map(fn($r) => [
+                            'id' => $r->getId(),
+                            'rating' => $r->getRating(),
+                            'conmment' => $r->getComment(),
+                            'createdAt' => $r->getCreatedAt()->format('Y-m-d H:i:s'),
+                        ], $reviews),
+                        'requests' => array_map(fn($r) => [
+                            'id' => $r->getRequestId(),
+                            'title' => $r->getTitle(),
+                            'description' => $r->getDescription(),
+                            'status' => $r->getStatus(),
+                            'createdAt' => $r->getCreatedAt()->format('Y-m-d H:i:s'),
+                        ], $requests),
+                        'diplomas' => array_map(fn($d) => [
+                            'id' => $d->getId(),
+                            'title' => $d->getTitle(),
+                            'institution' => $d->getInstitution(),
+                            'description' => $d->getDescription(),
+                            'startDate' => $d->getStartDate()?->format('Y-m-d'),
+                            'endDate' => $d->getEndDate()?->format('Y-m-d'),
+                        ], $diplomas),
+                        'services' => array_map(fn($s) => [
+                            'id' => $s->getId(),
+                            'title' => $s->getTitle(),
+                            'description' => $s->getDescription(),
+                            'minPrice' => $s->getMinPrice(),
+                            'maxPrice' => $s->getMaxPrice(),
+                            'duration' => $s->getDuration(),
+                        ], $services),
+                    ],
+                ]);
+                exit;
+            } catch (\Exception $e) {
+                error_log("Dashboard data loading error: " . $e->getMessage());
+                http_response_code(500);
+                echo json_encode(['error' => 'Failed to load dashboard data: ' . $e->getMessage()]);
+                exit;
+            }
         } elseif ($_SERVER['REQUEST_METHOD'] === 'PUT' && !empty($data)) {
             if (isset($data['email']) && !filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
                 http_response_code(400);
@@ -166,8 +171,6 @@ class ProviderDashboardController
                 echo json_encode(['error' => 'Password must be at least 8 characters']);
                 exit;
             }
-
-            // Validation des liens sociaux
             if (isset($data['socialLinks']) && is_array($data['socialLinks'])) {
                 foreach ($data['socialLinks'] as $link) {
                     if (!empty($link) && !filter_var($link, FILTER_VALIDATE_URL)) {
@@ -176,6 +179,36 @@ class ProviderDashboardController
                         exit;
                     }
                 }
+            }
+            if (isset($data['firstName']) && strlen($data['firstName']) > 255) {
+                http_response_code(400);
+                echo json_encode(['error' => 'First name must be 255 characters or less']);
+                exit;
+            }
+            if (isset($data['lastName']) && strlen($data['lastName']) > 255) {
+                http_response_code(400);
+                echo json_encode(['error' => 'Last name must be 255 characters or less']);
+                exit;
+            }
+            if (isset($data['title']) && strlen($data['title']) > 255) {
+                http_response_code(400);
+                echo json_encode(['error' => 'Title must be 255 characters or less']);
+                exit;
+            }
+            if (isset($data['presentation']) && strlen($data['presentation']) > 1000) {
+                http_response_code(400);
+                echo json_encode(['error' => 'Presentation must be 1000 characters or less']);
+                exit;
+            }
+            if (isset($data['country']) && strlen($data['country']) > 100) {
+                http_response_code(400);
+                echo json_encode(['error' => 'Country must be 100 characters or less']);
+                exit;
+            }
+            if (isset($data['profilePicture']) && !empty($data['profilePicture']) && !filter_var($data['profilePicture'], FILTER_VALIDATE_URL)) {
+                http_response_code(400);
+                echo json_encode(['error' => 'Invalid profile picture URL']);
+                exit;
             }
 
             if (isset($data['email'])) {
@@ -201,7 +234,6 @@ class ProviderDashboardController
             }
 
             $this->providerRepository->update($provider);
-            $this->logAction("Provider {$id} updated their profile");
             echo json_encode(['message' => 'Provider profile updated successfully']);
             exit;
         } elseif ($_SERVER['REQUEST_METHOD'] === 'PATCH' && !empty($data)) {
@@ -215,8 +247,6 @@ class ProviderDashboardController
                 echo json_encode(['error' => 'Password must be at least 8 characters']);
                 exit;
             }
-
-            // Validation des liens sociaux
             if (isset($data['socialLinks']) && is_array($data['socialLinks'])) {
                 foreach ($data['socialLinks'] as $link) {
                     if (!empty($link) && !filter_var($link, FILTER_VALIDATE_URL)) {
@@ -226,13 +256,37 @@ class ProviderDashboardController
                     }
                 }
             }
+            if (isset($data['firstName']) && strlen($data['firstName']) > 255) {
+                http_response_code(400);
+                echo json_encode(['error' => 'First name must be 255 characters or less']);
+                exit;
+            }
+            if (isset($data['lastName']) && strlen($data['lastName']) > 255) {
+                http_response_code(400);
+                echo json_encode(['error' => 'Last name must be 255 characters or less']);
+                exit;
+            }
+            if (isset($data['title']) && strlen($data['title']) > 255) {
+                http_response_code(400);
+                echo json_encode(['error' => 'Title must be 255 characters or less']);
+                exit;
+            }
+            if (isset($data['presentation']) && strlen($data['presentation']) > 1000) {
+                http_response_code(400);
+                echo json_encode(['error' => 'Presentation must be 1000 characters or less']);
+                exit;
+            }
+            if (isset($data['country']) && strlen($data['country']) > 100) {
+                http_response_code(400);
+                echo json_encode(['error' => 'Country must be 100 characters or less']);
+                exit;
+            }
+            if (isset($data['profilePicture']) && !empty($data['profilePicture']) && !filter_var($data['profilePicture'], FILTER_VALIDATE_URL)) {
+                http_response_code(400);
+                echo json_encode(['error' => 'Invalid profile picture URL']);
+                exit;
+            }
 
-            if (isset($data['firstName'])) {
-                $provider->setFirstName($data['firstName']);
-            }
-            if (isset($data['lastName'])) {
-                $provider->setLastName($data['lastName']);
-            }
             if (isset($data['email'])) {
                 $provider->setEmail($data['email']);
             }
@@ -256,37 +310,12 @@ class ProviderDashboardController
             }
 
             $this->providerRepository->update($provider);
-            $this->logAction("Provider {$id} partially updated their profile");
-            echo json_encode(['message' => 'Provider profile partially updated']);
+            echo json_encode(['message' => 'Provider profile updated successfully']);
             exit;
         } elseif ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
-            if (empty($data['password']) || !password_verify($data['password'], $provider->getPassword())) {
-                http_response_code(401);
-                echo json_encode(['error' => 'Invalid password for account deletion']);
-                exit;
-            }
-
-            try {
-                $this->pdo->beginTransaction();
-                $this->skillRepository->deleteByProviderId($id);
-                $this->slotRepository->deleteByProviderId($id);
-                $this->workRepository->deleteByProviderId($id);
-                $this->reviewRepository->deleteByProviderId($id);
-                $this->requestRepository->deleteByProviderId($id);
-                $this->diplomaRepository->deleteByProviderId($id);
-                $this->serviceRepository->deleteByProviderId($id);
-                $this->providerRepository->delete($id);
-                $this->pdo->commit();
-                $this->logAction("Provider {$id} deleted their account");
-                session_destroy();
-                echo json_encode(['message' => 'Provider account deleted successfully']);
-                exit;
-            } catch (\Exception $e) {
-                $this->pdo->rollBack();
-                http_response_code(500);
-                echo json_encode(['error' => 'Failed to delete account: ' . $e->getMessage()]);
-                exit;
-            }
+            $this->providerRepository->delete($id);
+            echo json_encode(['message' => 'Provider profile deleted successfully']);
+            exit;
         }
 
         http_response_code(405);
@@ -304,55 +333,71 @@ class ProviderDashboardController
         }
 
         $skills = $this->skillRepository->findAllSkillsByProviderId($id, 10);
-        $services = $this->serviceRepository->findByProviderId($id, 10);
         $works = $this->workRepository->findAllByProviderId($id, 10);
+        $reviews = $this->reviewRepository->findAllByProviderId($id, 10);
         $diplomas = $this->diplomaRepository->findAllByProviderId($id, 10);
+        $services = $this->serviceRepository->findByProviderId($id, 10);
 
-        // Récupération des liens sociaux directement depuis l'entité
-        $socialLinks = $provider->getSocialLinks();
+        // Récupérer les médias pour chaque completed work
+        $completedWorksWithMedia = array_map(function ($work) {
+            $media = $this->pdo->prepare('SELECT id, media_type, media_url FROM completed_work_media WHERE work_id = ?');
+            $media->execute([$work->getId()]);
+            $mediaList = $media->fetchAll(\PDO::FETCH_ASSOC);
+
+            return [
+                'id' => $work->getId(),
+                'company' => $work->getCompany(),
+                'title' => $work->getTitle(),
+                'description' => $work->getDescription(),
+                'startDate' => $work->getStartDate()->format('Y-m-d'),
+                'endDate' => $work->getEndDate()?->format('Y-m-d'),
+                'media' => array_map(fn($m) => [
+                    'id' => $m['id'],
+                    'filename' => $m['media_url']
+                ], $mediaList)
+            ];
+        }, $works);
 
         echo json_encode([
-            'home' => [
+            'provider' => [
                 'id' => $provider->getId(),
                 'firstName' => $provider->getFirstName(),
                 'lastName' => $provider->getLastName(),
-                'bio' => $provider->getPresentation() ?: 'Pas de bio disponible',
-            ],
-            'about' => [
-                'title' => $provider->getTitle() ?: 'Pas de titre',
-                'presentation' => $provider->getPresentation() ?: 'Pas de détails',
-                'country' => $provider->getCountry() ?: 'Non spécifié',
-                'createdAt' => $provider->getCreatedAt()->format('Y-m-d'),
+                'title' => $provider->getTitle(),
+                'presentation' => $provider->getPresentation(),
+                'country' => $provider->getCountry(),
+                'profilePicture' => $provider->getProfilePicture(),
+                'socialLinks' => $provider->getSocialLinks(),
+                'joinedAt' => $provider->getCreatedAt()->format('Y-m-d H:i:s'),
+                'skills' => array_map(fn($s) => [
+                    'id' => $s->getId(),
+                    'name' => $s->getName(),
+                ], $skills),
+                'completedWorks' => $completedWorksWithMedia,
+                'reviews' => array_map(fn($r) => [
+                    'id' => $r->getId(),
+                    'rating' => $r->getRating(),
+                    'comment' => $r->getComment(),
+                    'createdAt' => $r->getCreatedAt()->format('Y-m-d H:i:s'),
+                ], $reviews),
                 'diplomas' => array_map(fn($d) => [
                     'id' => $d->getId(),
                     'title' => $d->getTitle(),
                     'institution' => $d->getInstitution(),
                     'description' => $d->getDescription(),
+                    'startDate' => $d->getStartDate()?->format('Y-m-d'),
+                    'endDate' => $d->getEndDate()?->format('Y-m-d'),
                 ], $diplomas),
-                'completedWorks' => array_map(fn($w) => [
-                    'id' => $w->getId(),
-                    'company' => $w->getCompany(),
-                    'title' => $w->getTitle(),
-                    'description' => $w->getDescription(),
-                    'startDate' => $w->getStartDate()->format('Y-m-d'),
-                    'endDate' => $w->getEndDate()?->format('Y-m-d'),
-                ], $works),
-                'socialLinks' => $socialLinks, // Utilisation directe des liens sociaux
+                'services' => array_map(fn($s) => [
+                    'id' => $s->getId(),
+                    'title' => $s->getTitle(),
+                    'description' => $s->getDescription(),
+                    'minPrice' => $s->getMinPrice(),
+                    'maxPrice' => $s->getMaxPrice(),
+                    'duration' => $s->getDuration(),
+                ], $services),
             ],
-            'services' => array_map(fn($s) => [
-                'id' => $s->getId(),
-                'title' => $s->getTitle(),
-                'description' => $s->getDescription(),
-                'minPrice' => $s->getMinPrice(),
-                'maxPrice' => $s->getMaxPrice(),
-            ], $services),
         ]);
         exit;
-    }
-
-    private function logAction(string $message): void
-    {
-        $logMessage = sprintf("[%s] %s\n", date('Y-m-d H:i:s'), $message);
-        file_put_contents(__DIR__ . '/../../logs/provider_actions.log', $logMessage, FILE_APPEND);
     }
 }
