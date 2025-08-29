@@ -62,4 +62,12 @@ class Notification
     {
         $this->isRead = true;
     }
+
+    public function toArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'recipientId' => $this->recipientId,
+        ];
+    }
 }

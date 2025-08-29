@@ -112,6 +112,11 @@ class ClientFixtures
 
             // Créer la structure de dossiers et copier les images
             $this->imageService->createClientImageStructure($client->getId(), $clientData['profilePicture']);
+            // Mettre à jour la BDD avec l'URL relative finale
+            $ext = strtolower(pathinfo($clientData['profilePicture'], PATHINFO_EXTENSION));
+            $publicUrl = '/api/v1/images/clients/' . $client->getId() . '/profile/profile-picture.' . $ext;
+            $client->setProfilePicture($publicUrl);
+            $this->clientRepository->update($client);
 
             echo "Client créé : {$clientData['firstName']} {$clientData['lastName']} (slug: $slug)\n";
         }

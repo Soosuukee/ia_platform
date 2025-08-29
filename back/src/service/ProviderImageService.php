@@ -19,7 +19,7 @@ class ProviderImageService
     /**
      * Crée la structure minimale d'un provider et place éventuellement une image de profil
      */
-    public function createProviderImageStructure(int $providerId, string $profilePicture): void
+    public function createProviderImageStructure(int $providerId, string $profilePicture): ?string
     {
         $baseDir = __DIR__ . '/../../images/providers/' . $providerId;
 
@@ -38,13 +38,15 @@ class ProviderImageService
             }
         }
 
-        // Copier l'image de profil
+        // Copier l'image de profil en la renommant en profile-picture.{ext}
         $sourceProfile = __DIR__ . '/../../fixtures_images/providers/profilepicture/' . $profilePicture;
-        $destProfile = $baseDir . '/profile/' . $profilePicture;
-
+        $publicProfileUrl = null;
         if (file_exists($sourceProfile)) {
+            $extension = strtolower(pathinfo($profilePicture, PATHINFO_EXTENSION));
+            $destProfile = $baseDir . '/profile/profile-picture.' . $extension;
             copy($sourceProfile, $destProfile);
-            echo "  📸 Image de profil copiée : $profilePicture\n";
+            $publicProfileUrl = '/api/v1/images/providers/' . $providerId . '/profile/profile-picture.' . $extension;
+            echo "  📸 Image de profil copiée : profile-picture.$extension\n";
         }
 
         // Copier quelques images de services (exemple)
@@ -130,6 +132,7 @@ class ProviderImageService
                 echo "  🎓 Image d'éducation copiée : $image\n";
             }
         }
+        return $publicProfileUrl;
     }
 
     /**
@@ -192,13 +195,14 @@ class ProviderImageService
         }
 
         $extension = strtolower(pathinfo($originalFilename, PATHINFO_EXTENSION));
-        $destinationPath = $this->getProviderImageBaseDir($providerId) . '/services/' . $serviceId . '/cover.' . $extension;
+        $destinationDir = $this->getProviderImageBaseDir($providerId) . '/services/' . $serviceId . '/cover';
+        $this->ensureDirectoryExists($destinationDir);
+        $destinationPath = $destinationDir . '/service-cover.' . $extension;
 
         if (!$replaceExisting && file_exists($destinationPath)) {
             $destinationPath = $this->generateUniqueFilename($destinationPath);
         }
 
-        $this->ensureDirectoryExists(dirname($destinationPath));
         if (!move_uploaded_file($tempFilePath, $destinationPath)) {
             return ['success' => false, 'message' => 'Erreur lors du déplacement du fichier', 'error' => 'MOVE_FAILED'];
         }
@@ -210,7 +214,8 @@ class ProviderImageService
                 'filename' => basename($destinationPath),
                 'path' => $destinationPath,
                 'size' => filesize($destinationPath),
-                'mime_type' => mime_content_type($destinationPath)
+                'mime_type' => mime_content_type($destinationPath),
+                'public_url' => '/api/v1/images/providers/' . $providerId . '/services/' . $serviceId . '/cover/' . basename($destinationPath)
             ]
         ];
     }
@@ -238,7 +243,10 @@ class ProviderImageService
             . '/services/' . $serviceId . '/sections/' . $sectionId . '/contents/' . $contentId;
         $this->ensureDirectoryExists($destinationDir);
 
-        $destinationPath = $destinationDir . '/' . basename($originalFilename);
+        $extension = strtolower(pathinfo($originalFilename, PATHINFO_EXTENSION));
+        $nextIndex = $this->getNextSequentialIndex($destinationDir, 'content-image-', $extension);
+        $destinationPath = $destinationDir . '/content-image-' . $nextIndex . '.' . $extension;
+
         if (!$replaceExisting && file_exists($destinationPath)) {
             $destinationPath = $this->generateUniqueFilename($destinationPath);
         }
@@ -284,7 +292,17 @@ class ProviderImageService
         $destinationDir = $this->getProviderImageBaseDir($providerId) . '/' . $entityType . '/' . $entityId;
         $this->ensureDirectoryExists($destinationDir);
 
-        $destinationPath = $destinationDir . '/' . basename($originalFilename);
+        $extension = strtolower(pathinfo($originalFilename, PATHINFO_EXTENSION));
+        if ($entityType === 'experiences') {
+            $destinationPath = $destinationDir . '/exp' . $entityId . '.' . $extension;
+        } elseif ($entityType === 'articles') {
+            $index = $this->getNextSequentialIndex($destinationDir, 'article-image-', $extension);
+            $destinationPath = $destinationDir . '/article-image-' . $index . '.' . $extension;
+        } else { // education
+            $index = $this->getNextSequentialIndex($destinationDir, 'education-image-', $extension);
+            $destinationPath = $destinationDir . '/education-image-' . $index . '.' . $extension;
+        }
+
         if (!$replaceExisting && file_exists($destinationPath)) {
             $destinationPath = $this->generateUniqueFilename($destinationPath);
         }
@@ -332,22 +350,56 @@ class ProviderImageService
                 return $validationResult;
             }
 
-            // Créer la structure de dossiers
+            // Créer la structure de base du provider
             $baseDir = $this->getProviderImageBaseDir($providerId);
             $this->ensureDirectoryExists($baseDir);
 
-            // Déterminer le chemin de destination
-            $destinationPath = $this->buildDestinationPath($providerId, $imageType, $originalFilename, $subId);
+            $extension = strtolower(pathinfo($originalFilename, PATHINFO_EXTENSION));
+            $destinationDir = $this->buildTypeDirectory($baseDir, $imageType, $subId);
+            $this->ensureDirectoryExists($destinationDir);
 
-            // Gérer les collisions de noms
+            // Déterminer le nom de fichier selon le type
+            switch ($imageType) {
+                case 'profile':
+                    $filename = 'profile-picture.' . $extension;
+                    break;
+                case 'experiences':
+                    if ($subId === null) {
+                        return ['success' => false, 'message' => 'experienceId manquant', 'error' => 'MISSING_SUB_ID'];
+                    }
+                    $filename = 'exp' . $subId . '.' . $extension;
+                    break;
+                case 'services':
+                    if ($subId === null) {
+                        return ['success' => false, 'message' => 'serviceId manquant', 'error' => 'MISSING_SUB_ID'];
+                    }
+                    $next = $this->getNextSequentialIndex($destinationDir, 'service-image-', $extension);
+                    $filename = 'service-image-' . $next . '.' . $extension;
+                    break;
+                case 'articles':
+                    if ($subId === null) {
+                        return ['success' => false, 'message' => 'articleId manquant', 'error' => 'MISSING_SUB_ID'];
+                    }
+                    $next = $this->getNextSequentialIndex($destinationDir, 'article-image-', $extension);
+                    $filename = 'article-image-' . $next . '.' . $extension;
+                    break;
+                case 'education':
+                    if ($subId === null) {
+                        return ['success' => false, 'message' => 'educationId manquant', 'error' => 'MISSING_SUB_ID'];
+                    }
+                    $next = $this->getNextSequentialIndex($destinationDir, 'education-image-', $extension);
+                    $filename = 'education-image-' . $next . '.' . $extension;
+                    break;
+                default:
+                    $filename = basename($originalFilename);
+            }
+
+            $destinationPath = $destinationDir . '/' . $filename;
+
             if (!$replaceExisting && file_exists($destinationPath)) {
                 $destinationPath = $this->generateUniqueFilename($destinationPath);
             }
 
-            // Créer le dossier de destination si nécessaire
-            $this->ensureDirectoryExists(dirname($destinationPath));
-
-            // Déplacer le fichier
             if (!move_uploaded_file($tempFilePath, $destinationPath)) {
                 return [
                     'success' => false,
@@ -356,7 +408,6 @@ class ProviderImageService
                 ];
             }
 
-            // Retourner le succès avec les informations du fichier
             return [
                 'success' => true,
                 'message' => 'Image uploadée avec succès',
@@ -364,7 +415,8 @@ class ProviderImageService
                     'filename' => basename($destinationPath),
                     'path' => $destinationPath,
                     'size' => filesize($destinationPath),
-                    'mime_type' => mime_content_type($destinationPath)
+                    'mime_type' => mime_content_type($destinationPath),
+                    'public_url' => $this->buildPublicUrl($providerId, $imageType, basename($destinationPath), $subId)
                 ]
             ];
         } catch (\Exception $e) {
@@ -539,6 +591,15 @@ class ProviderImageService
         return $typeDir;
     }
 
+    private function buildPublicUrl(int $providerId, string $imageType, string $filename, ?int $subId = null): string
+    {
+        $base = '/api/v1/images/providers/' . $providerId . '/' . $imageType;
+        if ($subId !== null && in_array($imageType, ['services', 'articles', 'experiences', 'education'])) {
+            return $base . '/' . $subId . '/' . $filename;
+        }
+        return $base . '/' . $filename;
+    }
+
     /**
      * S'assurer qu'un répertoire existe
      */
@@ -565,5 +626,103 @@ class ProviderImageService
         } while (file_exists($newPath));
 
         return $newPath;
+    }
+
+    /**
+     * Trouver le prochain index séquentiel pour un préfixe donné dans un dossier
+     */
+    private function getNextSequentialIndex(string $directory, string $prefix, string $extension): int
+    {
+        $this->ensureDirectoryExists($directory);
+        $files = is_dir($directory) ? scandir($directory) : [];
+        $max = 0;
+        foreach ($files as $file) {
+            if ($file === '.' || $file === '..') {
+                continue;
+            }
+            if (preg_match('/^' . preg_quote($prefix, '/') . '(\d+)\.' . preg_quote($extension, '/') . '$/i', $file, $m)) {
+                $num = (int)$m[1];
+                if ($num > $max) {
+                    $max = $num;
+                }
+            }
+        }
+        return $max + 1;
+    }
+
+    /**
+     * Copier un logo d'expérience depuis fixtures_images vers l'arborescence finale
+     */
+    public function copyFixtureExperienceLogo(int $providerId, int $experienceId, string $fixtureFilename): ?string
+    {
+        $source = __DIR__ . '/../../fixtures_images/providers/experiences/' . $fixtureFilename;
+        if (!file_exists($source)) {
+            return null;
+        }
+
+        $extension = strtolower(pathinfo($fixtureFilename, PATHINFO_EXTENSION));
+        $destinationDir = $this->getProviderImageBaseDir($providerId) . '/experiences/' . $experienceId;
+        $this->ensureDirectoryExists($destinationDir);
+        $destinationPath = $destinationDir . '/exp' . $experienceId . '.' . $extension;
+
+        copy($source, $destinationPath);
+        return '/api/v1/images/providers/' . $providerId . '/experiences/' . $experienceId . '/exp' . $experienceId . '.' . $extension;
+    }
+
+    /**
+     * Copier un logo d'éducation depuis fixtures_images vers l'arborescence finale
+     */
+    public function copyFixtureEducationLogo(int $providerId, int $educationId, string $fixtureFilename): ?string
+    {
+        $source = __DIR__ . '/../../fixtures_images/providers/educations/' . $fixtureFilename;
+        if (!file_exists($source)) {
+            return null;
+        }
+
+        $extension = strtolower(pathinfo($fixtureFilename, PATHINFO_EXTENSION));
+        $destinationDir = $this->getProviderImageBaseDir($providerId) . '/education/' . $educationId;
+        $this->ensureDirectoryExists($destinationDir);
+        $destinationPath = $destinationDir . '/education-image-1.' . $extension;
+
+        copy($source, $destinationPath);
+        return '/api/v1/images/providers/' . $providerId . '/education/' . $educationId . '/education-image-1.' . $extension;
+    }
+
+    /**
+     * Copier une image de couverture d'article depuis fixtures_images vers l'arborescence finale
+     */
+    public function copyFixtureArticleImage(int $providerId, int $articleId, string $fixtureFilename): ?string
+    {
+        $source = __DIR__ . '/../../fixtures_images/providers/articles/' . $fixtureFilename;
+        if (!file_exists($source)) {
+            return null;
+        }
+
+        $extension = strtolower(pathinfo($fixtureFilename, PATHINFO_EXTENSION));
+        $destinationDir = $this->getProviderImageBaseDir($providerId) . '/articles/' . $articleId;
+        $this->ensureDirectoryExists($destinationDir);
+        $destinationPath = $destinationDir . '/article-image-1.' . $extension;
+
+        copy($source, $destinationPath);
+        return '/api/v1/images/providers/' . $providerId . '/articles/' . $articleId . '/article-image-1.' . $extension;
+    }
+
+    /**
+     * Copier une cover de service depuis fixtures_images vers l'arborescence finale
+     */
+    public function copyFixtureServiceCover(int $providerId, int $serviceId, string $fixtureFilename): ?string
+    {
+        $source = __DIR__ . '/../../fixtures_images/providers/services/' . $fixtureFilename;
+        if (!file_exists($source)) {
+            return null;
+        }
+
+        $extension = strtolower(pathinfo($fixtureFilename, PATHINFO_EXTENSION));
+        $destinationDir = $this->getProviderImageBaseDir($providerId) . '/services/' . $serviceId . '/cover';
+        $this->ensureDirectoryExists($destinationDir);
+        $destinationPath = $destinationDir . '/service-cover.' . $extension;
+
+        copy($source, $destinationPath);
+        return '/api/v1/images/providers/' . $providerId . '/services/' . $serviceId . '/cover/service-cover.' . $extension;
     }
 }

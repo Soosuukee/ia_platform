@@ -30,4 +30,13 @@ class ArticleImage
     {
         return $this->url;
     }
+
+    public function toArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'articleContentId' => $this->articleContentId,
+            'url' => $this->url,
+        ];
+    }
 }

@@ -163,6 +163,35 @@ class ArticleRepository
         $stmt->execute([$providerId]);
     }
 
+    // Images d'article (contenu)
+    public function findArticleImageById(int $imageId): ?array
+    {
+        $stmt = $this->pdo->prepare('SELECT * FROM article_image WHERE id = ?');
+        $stmt->execute([$imageId]);
+        $row = $stmt->fetch();
+        return $row ?: null;
+    }
+
+    public function deleteArticleImageById(int $imageId): void
+    {
+        $stmt = $this->pdo->prepare('DELETE FROM article_image WHERE id = ?');
+        $stmt->execute([$imageId]);
+    }
+
+    public function findArticleIdByContentId(int $contentId): ?int
+    {
+        $stmt = $this->pdo->prepare('
+            SELECT a.id AS article_id
+            FROM article a
+            JOIN article_section s ON s.article_id = a.id
+            JOIN article_content c ON c.article_content_id = s.id
+            WHERE c.id = ?
+        ');
+        $stmt->execute([$contentId]);
+        $row = $stmt->fetch();
+        return $row ? (int)$row['article_id'] : null;
+    }
+
     public function findByTagId(int $tagId): array
     {
         $stmt = $this->pdo->prepare('
@@ -191,6 +220,26 @@ class ArticleRepository
             ORDER BY a.published_at DESC
         ');
         $stmt->execute([$tagSlug]);
+
+        $articles = [];
+        while ($row = $stmt->fetch()) {
+            $articles[] = $this->mapToArticle($row);
+        }
+
+        return $articles;
+    }
+
+    public function search(string $query): array
+    {
+        $stmt = $this->pdo->prepare('
+            SELECT DISTINCT a.* FROM article a
+            LEFT JOIN article_tag at ON a.id = at.article_id
+            LEFT JOIN tag t ON at.tag_id = t.id
+            WHERE a.title LIKE ? OR a.summary LIKE ? OR t.title LIKE ?
+            ORDER BY a.published_at DESC
+        ');
+        $like = '%' . $query . '%';
+        $stmt->execute([$like, $like, $like]);
 
         $articles = [];
         while ($row = $stmt->fetch()) {

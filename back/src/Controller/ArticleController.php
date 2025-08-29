@@ -77,6 +77,27 @@ class ArticleController
         return $articlesWithContent;
     }
 
+    // GET /providers/{providerId}/articles
+    public function getArticlesByProviderId(int $providerId): array
+    {
+        $articles = $this->articleRepository->findByProviderId($providerId);
+        $articlesWithContent = [];
+        foreach ($articles as $article) {
+            $articlesWithContent[] = $this->articleRepository->getArticleWithContent($article->getId());
+        }
+        return $articlesWithContent;
+    }
+
+    // GET /providers/{providerId}/articles/{articleId}
+    public function getArticleByProviderIdAndArticleId(int $providerId, int $articleId): ?array
+    {
+        $article = $this->articleRepository->findById($articleId);
+        if (!$article || $article->getProviderId() !== $providerId) {
+            return null;
+        }
+        return $this->articleRepository->getArticleWithContent($articleId);
+    }
+
     // GET /articles/published
     public function getPublishedArticles(): array
     {
@@ -377,6 +398,41 @@ class ArticleController
         }
     }
 
+    // DELETE /articles/{articleId}/content/{contentId}/images/{imageId}
+    public function deleteContentImage(int $articleId, int $contentId, int $imageId): array
+    {
+        try {
+            $article = $this->articleRepository->findById($articleId);
+            if (!$article) {
+                return ['success' => false, 'message' => 'Article non trouvé'];
+            }
+
+            // Security: only owner provider can delete
+            $currentUserId = AuthMiddleware::getCurrentUserId();
+            $currentUserType = AuthMiddleware::getCurrentUserType();
+            if ($currentUserType !== 'provider' || $article->getProviderId() !== $currentUserId) {
+                return ['success' => false, 'message' => 'Accès interdit'];
+            }
+
+            // Vérifier que l'image appartient bien au content et à l'article
+            $image = $this->articleRepository->findArticleImageById($imageId);
+            if (!$image || (int)$image['article_content_id'] !== $contentId) {
+                return ['success' => false, 'message' => 'Image non trouvée pour ce contenu'];
+            }
+
+            // Optionnel: vérifier le lien avec l'article via contentId
+            $linkedArticleId = $this->articleRepository->findArticleIdByContentId($contentId);
+            if ($linkedArticleId !== $articleId) {
+                return ['success' => false, 'message' => 'Image non liée à cet article'];
+            }
+
+            $this->articleRepository->deleteArticleImageById($imageId);
+            return ['success' => true, 'message' => 'Image supprimée'];
+        } catch (\Exception $e) {
+            return ['success' => false, 'message' => 'Erreur: ' . $e->getMessage()];
+        }
+    }
+
     public function getArticlesByTag(int $tagId): array
     {
         $articles = $this->articleRepository->findByTagId($tagId);
@@ -390,5 +446,19 @@ class ArticleController
             'cover' => $article->getCover(),
             'publishedAt' => $article->getPublishedAt()->format('Y-m-d H:i:s')
         ], $articles);
+    }
+
+    // GET /articles/tag/slug/{tagSlug}
+    public function getArticlesByTagSlug(string $tagSlug): array
+    {
+        $articles = $this->articleRepository->findByTagSlug($tagSlug);
+        return array_map(fn(Article $a) => $a->toArray(), $articles);
+    }
+
+    // GET /articles/search/{query}
+    public function searchArticles(string $query): array
+    {
+        $articles = $this->articleRepository->search($query);
+        return array_map(fn(Article $a) => $a->toArray(), $articles);
     }
 }

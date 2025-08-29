@@ -93,4 +93,12 @@ class CompletedWork
     {
         $this->endDate = $endDate;
     }
+
+    public function toArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'providerId' => $this->providerId,
+        ];
+    }
 }

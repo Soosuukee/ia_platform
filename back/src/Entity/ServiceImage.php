@@ -30,4 +30,12 @@ class ServiceImage
     {
         return $this->url;
     }
+
+    public function toArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'serviceContentId' => $this->serviceContentId,
+        ];
+    }
 }

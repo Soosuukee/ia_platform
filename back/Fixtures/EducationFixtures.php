@@ -7,16 +7,19 @@ namespace Soosuuke\IaPlatform\Fixtures;
 use Soosuuke\IaPlatform\Config\Database;
 use Soosuuke\IaPlatform\Entity\Education;
 use Soosuuke\IaPlatform\Repository\EducationRepository;
+use Soosuuke\IaPlatform\Service\ProviderImageService;
 
 class EducationFixtures
 {
     private \PDO $pdo;
     private EducationRepository $educationRepository;
+    private ProviderImageService $imageService;
 
     public function __construct()
     {
         $this->pdo = Database::connect();
         $this->educationRepository = new EducationRepository();
+        $this->imageService = new ProviderImageService();
     }
 
     public function load(): void
@@ -97,6 +100,16 @@ class EducationFixtures
             );
 
             $this->educationRepository->save($education);
+
+            // Copier le logo d'éducation et stocker l'URL relative finale
+            if ($institutionImage && method_exists($education, 'getId')) {
+                $finalUrl = $this->imageService->copyFixtureEducationLogo($providerId, (int)$education->getId(), (string)$institutionImage);
+                if ($finalUrl) {
+                    $education->setInstitutionImage($finalUrl);
+                    $this->educationRepository->update($education);
+                }
+            }
+
             echo "Education créée: {$title} ({$institutionName}) pour provider {$providerId}\n";
         }
 

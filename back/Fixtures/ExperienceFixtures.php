@@ -7,16 +7,19 @@ namespace Soosuuke\IaPlatform\Fixtures;
 use Soosuuke\IaPlatform\Config\Database;
 use Soosuuke\IaPlatform\Entity\Experience;
 use Soosuuke\IaPlatform\Repository\ExperienceRepository;
+use Soosuuke\IaPlatform\Service\ProviderImageService;
 
 class ExperienceFixtures
 {
     private \PDO $pdo;
     private ExperienceRepository $experienceRepository;
+    private ProviderImageService $imageService;
 
     public function __construct()
     {
         $this->pdo = Database::connect();
         $this->experienceRepository = new ExperienceRepository();
+        $this->imageService = new ProviderImageService();
     }
 
     public function load(): void
@@ -56,7 +59,7 @@ class ExperienceFixtures
                 'thirdTask' => null,
                 'startedAt' => '2017-01-01',
                 'endedAt' => null,
-                'companyLogo' => 'deeplearning-ai-logo.png'
+                'companyLogo' => 'deeplearning-ai-logo.jpg'
             ],
             [
                 'providerId' => 2,
@@ -103,14 +106,23 @@ class ExperienceFixtures
                 $title,
                 $companyName,
                 $firstTask,
-                $secondTask ? (string) $secondTask : null,
-                $thirdTask ? (string) $thirdTask : null,
                 $startedAt,
                 $endedAtObj,
+                $secondTask ? (string) $secondTask : null,
+                $thirdTask ? (string) $thirdTask : null,
                 $companyLogo ? (string) $companyLogo : null
             );
 
             $this->experienceRepository->save($experience);
+
+            // Copier le logo d'expérience depuis fixtures_images et stocker l'URL relative finale
+            if ($companyLogo && method_exists($experience, 'getId')) {
+                $finalUrl = $this->imageService->copyFixtureExperienceLogo($providerId, (int)$experience->getId(), (string)$companyLogo);
+                if ($finalUrl) {
+                    $experience->setCompanyLogo($finalUrl);
+                    $this->experienceRepository->update($experience);
+                }
+            }
             echo "Experience créée: {$title} ({$companyName}) pour provider {$providerId}\n";
         }
 

@@ -198,6 +198,26 @@ class ServiceRepository
         return $services;
     }
 
+    public function search(string $query): array
+    {
+        $stmt = $this->pdo->prepare('
+            SELECT DISTINCT s.* FROM service s
+            LEFT JOIN service_tag st ON s.id = st.service_id
+            LEFT JOIN tag t ON st.tag_id = t.id
+            WHERE s.title LIKE ? OR s.summary LIKE ? OR t.title LIKE ?
+            ORDER BY s.created_at DESC
+        ');
+        $like = '%' . $query . '%';
+        $stmt->execute([$like, $like, $like]);
+
+        $services = [];
+        while ($row = $stmt->fetch()) {
+            $services[] = $this->mapToService($row);
+        }
+
+        return $services;
+    }
+
     public function getServiceWithContent(int $serviceId): ?array
     {
         // Récupérer le service
@@ -237,6 +257,15 @@ class ServiceRepository
                 $stmt = $this->pdo->prepare('SELECT * FROM service_image WHERE service_content_id = ? ORDER BY id');
                 $stmt->execute([$content['id']]);
                 $images = $stmt->fetchAll();
+                // Ajouter l'URL publique calculée
+                $images = array_map(function ($img) use ($serviceId) {
+                    if (isset($img['url']) && is_string($img['url']) && str_starts_with($img['url'], '/api/v1/images/')) {
+                        return $img;
+                    }
+                    // Si stocké en nom brut, construire une URL (optionnel)
+                    $img['public_url'] = $img['url'] ?? null;
+                    return $img;
+                }, $images);
 
                 $contentData['images'] = $images;
                 $sectionData['contents'][] = $contentData;

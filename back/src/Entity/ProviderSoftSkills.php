@@ -30,4 +30,12 @@ class ProviderSoftSkills
     {
         return $this->softSkillId;
     }
+
+    public function toArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'providerId' => $this->providerId,
+        ];
+    }
 }

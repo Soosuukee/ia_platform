@@ -6,20 +6,27 @@ namespace Soosuuke\IaPlatform\Fixtures;
 
 use Soosuuke\IaPlatform\Config\Database;
 use Soosuuke\IaPlatform\Entity\Service;
+use Soosuuke\IaPlatform\Entity\ServiceTag;
+use Soosuuke\IaPlatform\Repository\TagRepository;
 use Soosuuke\IaPlatform\Repository\ServiceRepository;
 use Soosuuke\IaPlatform\Service\ServiceSlugificationService;
+use Soosuuke\IaPlatform\Service\ProviderImageService;
 
 class ServiceFixtures
 {
     private \PDO $pdo;
     private ServiceRepository $serviceRepository;
     private ServiceSlugificationService $slugificationService;
+    private ProviderImageService $imageService;
+    private TagRepository $tagRepository;
 
     public function __construct()
     {
         $this->pdo = Database::connect();
         $this->serviceRepository = new ServiceRepository();
         $this->slugificationService = new ServiceSlugificationService();
+        $this->imageService = new ProviderImageService();
+        $this->tagRepository = new TagRepository();
     }
 
     public function load(): void
@@ -37,7 +44,7 @@ class ServiceFixtures
                 'maxPrice' => 15000,
                 'isActive' => true,
                 'isFeatured' => true,
-                'serviceCover' => 'cover-01.jpg'
+                'serviceCover' => 'cover-1.jpg'
             ],
             [
                 'providerId' => 1,
@@ -48,7 +55,7 @@ class ServiceFixtures
                 'maxPrice' => null,
                 'isActive' => true,
                 'isFeatured' => false,
-                'serviceCover' => 'ferrari-laferrari.jpg'
+                'serviceCover' => 'ferrari-laferrari.jpeg'
             ],
             [
                 'providerId' => 1,
@@ -103,7 +110,7 @@ class ServiceFixtures
                 'maxPrice' => 18000,
                 'isActive' => true,
                 'isFeatured' => true,
-                'serviceCover' => 'mclaren-720s.jpg'
+                'serviceCover' => 'mclaren-720s.webp'
             ],
             [
                 'providerId' => 5,
@@ -114,7 +121,7 @@ class ServiceFixtures
                 'maxPrice' => 11000,
                 'isActive' => true,
                 'isFeatured' => false,
-                'serviceCover' => 'porsche-911.jpg'
+                'serviceCover' => 'porsche-911.avif'
             ],
             [
                 'providerId' => 6,
@@ -158,7 +165,7 @@ class ServiceFixtures
                 'maxPrice' => 15000,
                 'isActive' => true,
                 'isFeatured' => true,
-                'serviceCover' => 'koenigsegg-agera.jpg'
+                'serviceCover' => 'koenigsegg-agera.webp'
             ],
             [
                 'providerId' => 6,
@@ -169,7 +176,7 @@ class ServiceFixtures
                 'maxPrice' => 13000,
                 'isActive' => true,
                 'isFeatured' => false,
-                'serviceCover' => 'mercedes-amg-gt.jpg'
+                'serviceCover' => 'mercedes-amg-gt.avif'
             ],
         ];
 
@@ -219,7 +226,47 @@ class ServiceFixtures
             ];
 
             $this->serviceRepository->saveServiceWithContent($service, $sections);
+
+            // Insérer des images de contenu par défaut (URL publiques)
+            $serviceId = (int)$service->getId();
+            $stmt = $this->pdo->prepare('SELECT id FROM service_section WHERE service_id = ? ORDER BY id');
+            $stmt->execute([$serviceId]);
+            $sectionsRows = $stmt->fetchAll();
+            foreach ($sectionsRows as $sRow) {
+                $stmt2 = $this->pdo->prepare('SELECT id FROM service_content WHERE service_content_id = ? ORDER BY id');
+                $stmt2->execute([$sRow['id']]);
+                $contentsRows = $stmt2->fetchAll();
+                foreach ($contentsRows as $cRow) {
+                    // Exemple: ajouter une image publique si une existe dans fixtures_images/providers/services
+                    $example = $row['serviceCover'] ?? null;
+                    if ($example) {
+                        $url = $this->imageService->copyFixtureServiceCover((int)$row['providerId'], $serviceId, (string)$example);
+                        if ($url) {
+                            $stmt3 = $this->pdo->prepare('INSERT INTO service_image (service_content_id, url) VALUES (?, ?)');
+                            $stmt3->execute([$cRow['id'], $url]);
+                        }
+                    }
+                }
+            }
+
+            // Copier cover si fournie et stocker l'URL relative finale
+            if (!empty($row['serviceCover'])) {
+                $finalUrl = $this->imageService->copyFixtureServiceCover((int)$row['providerId'], (int)$service->getId(), (string)$row['serviceCover']);
+                if ($finalUrl) {
+                    $service->setCover($finalUrl);
+                    $this->serviceRepository->update($service);
+                }
+            }
             echo "Service créé (avec contenu): {$title} (providerId: {$row['providerId']}, slug: {$slug})\n";
+
+            // Associer un tag s'il existe
+            if (!empty($row['tag'])) {
+                $tag = $this->tagRepository->findByTitle($row['tag']);
+                if ($tag) {
+                    $stmt = $this->pdo->prepare('INSERT INTO service_tag (service_id, tag_id) VALUES (?, ?)');
+                    $stmt->execute([$service->getId(), $tag->getId()]);
+                }
+            }
         }
 
         echo "✅ Fixtures Service chargées avec succès.\n";

@@ -29,25 +29,29 @@ class ClientController
     // GET /clients
     public function getAllClients(): array
     {
-        return $this->clientRepository->findAll();
+        $clients = $this->clientRepository->findAll();
+        return array_map(fn($c) => method_exists($c, 'toArray') ? $c->toArray() : $c, $clients);
     }
 
     // GET /clients/{id}
-    public function getClientById(int $id): ?Client
+    public function getClientById(int $id): ?array
     {
-        return $this->clientRepository->findById($id);
+        $client = $this->clientRepository->findById($id);
+        return $client ? (method_exists($client, 'toArray') ? $client->toArray() : null) : null;
     }
 
     // GET /clients/email/{email}
-    public function getClientByEmail(string $email): ?Client
+    public function getClientByEmail(string $email): ?array
     {
-        return $this->clientRepository->findByEmail($email);
+        $client = $this->clientRepository->findByEmail($email);
+        return $client ? (method_exists($client, 'toArray') ? $client->toArray() : null) : null;
     }
 
     // GET /clients/slug/{slug}
-    public function getClientBySlug(string $slug): ?Client
+    public function getClientBySlug(string $slug): ?array
     {
-        return $this->clientRepository->findBySlug($slug);
+        $client = $this->clientRepository->findBySlug($slug);
+        return $client ? (method_exists($client, 'toArray') ? $client->toArray() : null) : null;
     }
 
     // POST /clients

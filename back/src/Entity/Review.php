@@ -70,4 +70,13 @@ class Review
     {
         $this->rating = new Rating($rating);
     }
+
+    public function toArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'clientId' => $this->clientId,
+            'providerId' => $this->providerId,
+        ];
+    }
 }

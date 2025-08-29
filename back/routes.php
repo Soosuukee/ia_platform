@@ -110,11 +110,17 @@ $dispatcher = simpleDispatcher(function (RouteCollector $r) {
         // Accès par slug direct désactivé pour les services
         $r->addRoute('GET', '/providers/slug/{providerSlug}/services', ['service', 'getServicesByProviderSlug']);
         $r->addRoute('GET', '/providers/slug/{providerSlug}/services/{serviceSlug}', ['service', 'getServiceByProviderAndSlug']);
+        $r->addRoute('GET', '/providers/{providerSlug}/services', ['service', 'getServicesByProviderSlug']);
+        $r->addRoute('GET', '/providers/{providerSlug}/services/{serviceSlug}', ['service', 'getServiceByProviderAndSlug']);
+        $r->addRoute('GET', '/providers/{providerId:\d+}/services', ['service', 'getServicesByProviderId']);
+        $r->addRoute('GET', '/services/{id:\d+}', ['service', 'getServiceById']);
         $r->addRoute('GET', '/providers/slug/{providerSlug}/experiences', ['provider', 'getProviderExperiences']);
         $r->addRoute('GET', '/providers/slug/{providerSlug}/educations', ['provider', 'getProviderEducations']);
         $r->addRoute('GET', '/services/active', ['service', 'getActiveServices']);
         $r->addRoute('GET', '/services/featured', ['service', 'getFeaturedServices']);
         $r->addRoute('GET', '/services/tag/{tagId:\d+}', ['service', 'getServicesByTag']);
+        $r->addRoute('GET', '/services/tag/slug/{tagSlug}', ['service', 'getServicesByTagSlug']);
+        $r->addRoute('GET', '/services/search/{query}', ['service', 'searchServices']);
         $r->addRoute('POST', '/services', ['service', 'createService']);
         $r->addRoute('PUT', '/services/{id:\d+}', ['service', 'updateService']);
         $r->addRoute('PATCH', '/services/{id:\d+}', ['service', 'updateService']);
@@ -138,9 +144,13 @@ $dispatcher = simpleDispatcher(function (RouteCollector $r) {
         // Accès par slug direct désactivé pour les articles
         $r->addRoute('GET', '/providers/slug/{providerSlug}/articles', ['article', 'getArticlesByProviderSlug']);
         $r->addRoute('GET', '/providers/slug/{providerSlug}/articles/{articleSlug}', ['article', 'getArticleByProviderAndSlug']);
+        $r->addRoute('GET', '/providers/{providerSlug}/articles', ['article', 'getArticlesByProviderSlug']);
+        $r->addRoute('GET', '/providers/{providerSlug}/articles/{articleSlug}', ['article', 'getArticleByProviderAndSlug']);
         $r->addRoute('GET', '/articles/published', ['article', 'getPublishedArticles']);
         $r->addRoute('GET', '/articles/featured', ['article', 'getFeaturedArticles']);
         $r->addRoute('GET', '/articles/tag/{tagId:\d+}', ['article', 'getArticlesByTag']);
+        $r->addRoute('GET', '/articles/tag/slug/{tagSlug}', ['article', 'getArticlesByTagSlug']);
+        $r->addRoute('GET', '/articles/search/{query}', ['article', 'searchArticles']);
         $r->addRoute('POST', '/articles', ['article', 'createArticle']);
         $r->addRoute('PUT', '/articles/{id:\d+}', ['article', 'updateArticle']);
         $r->addRoute('PATCH', '/articles/{id:\d+}', ['article', 'updateArticle']);
@@ -158,6 +168,7 @@ $dispatcher = simpleDispatcher(function (RouteCollector $r) {
         $r->addRoute('PATCH', '/articles/{id:\d+}/with-content', ['article', 'patchArticleWithContent']);
         $r->addRoute('POST', '/articles/{id:\d+}/cover', ['article', 'uploadCover']);
         $r->addRoute('POST', '/articles/{articleId:\d+}/content/{contentId:\d+}/images', ['article', 'uploadImage']);
+        $r->addRoute('DELETE', '/articles/{articleId:\d+}/content/{contentId:\d+}/images/{imageId:\d+}', ['article', 'deleteContentImage']);
         $r->addRoute('DELETE', '/articles/slug/{slug}', ['article', 'deleteArticleBySlug']);
 
         // Soft skill routes
@@ -234,7 +245,9 @@ $dispatcher = simpleDispatcher(function (RouteCollector $r) {
         $r->addRoute('POST', '/providers/{providerId:\d+}/images/experiences/{experienceId:\d+}', ['providerImage', 'uploadExperienceImage']);
         $r->addRoute('POST', '/providers/{providerId:\d+}/images/education/{educationId:\d+}', ['providerImage', 'uploadEducationImage']);
         $r->addRoute('GET', '/providers/{providerId:\d+}/images/{imageType}', ['providerImage', 'listImages']);
+        $r->addRoute('GET', '/providers/{providerId:\d+}/images/{imageType}/{subId:\d+}', ['providerImage', 'listImagesBySub']);
         $r->addRoute('DELETE', '/providers/{providerId:\d+}/images/{imageType}/{filename}', ['providerImage', 'deleteImage']);
+        $r->addRoute('DELETE', '/providers/{providerId:\d+}/images/{imageType}/{subId:\d+}/{filename}', ['providerImage', 'deleteImageBySub']);
 
         // Client Image routes
         $r->addRoute('POST', '/clients/{clientId:\d+}/images/profile', ['clientImage', 'uploadProfileImage']);
@@ -244,13 +257,14 @@ $dispatcher = simpleDispatcher(function (RouteCollector $r) {
         // Routes avec slugs pour les URLs SEO-friendly
         $r->addRoute('GET', '/providers/{slug}', ['provider', 'getProviderBySlug']);
         $r->addRoute('GET', '/clients/{slug}', ['client', 'getClientBySlug']);
-        $r->addRoute('GET', '/services/{slug}', ['service', 'getServiceBySlug']);
+        // supprimé: GET /services/{slug}
         $r->addRoute('GET', '/articles/{slug}', ['article', 'getArticleBySlug']);
 
         // Routes imbriquées pour les services et articles d'un provider
-        $r->addRoute('GET', '/providers/{providerSlug}/services/{serviceSlug}', ['service', 'getServiceByProviderAndSlug']);
         // plus de with-content: renvoyé par défaut
-        $r->addRoute('GET', '/providers/{providerSlug}/articles/{articleSlug}', ['article', 'getArticleByProviderAndSlug']);
+        // variantes ID (utilitaires)
+        $r->addRoute('GET', '/providers/{providerId:\d+}/articles', ['article', 'getArticlesByProviderId']);
+        $r->addRoute('GET', '/providers/{providerId:\d+}/articles/{articleId:\d+}', ['article', 'getArticleByProviderIdAndArticleId']);
         // plus de with-content: renvoyé par défaut
     });
 });
@@ -313,8 +327,12 @@ switch ($routeInfo[0]) {
                 '/api/v1/providers/{providerSlug}/availability',
                 '/api/v1/providers/slug/{providerSlug}/services',
                 '/api/v1/providers/slug/{providerSlug}/services/{serviceSlug}',
+                '/api/v1/providers/{providerSlug}/services',
+                '/api/v1/providers/{providerSlug}/services/{serviceSlug}',
                 '/api/v1/providers/slug/{providerSlug}/articles',
                 '/api/v1/providers/slug/{providerSlug}/articles/{articleSlug}',
+                '/api/v1/providers/{providerSlug}/articles',
+                '/api/v1/providers/{providerSlug}/articles/{articleSlug}',
                 '/api/v1/providers/slug/{providerSlug}/experiences',
                 '/api/v1/providers/slug/{providerSlug}/educations',
                 '/api/v1/providers/{slug}',

@@ -30,4 +30,12 @@ class ServiceSection
     {
         return $this->title;
     }
+
+    public function toArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'serviceId' => $this->serviceId,
+        ];
+    }
 }

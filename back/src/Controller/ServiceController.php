@@ -41,16 +41,6 @@ class ServiceController
         return $this->serviceRepository->getServiceWithContent($id);
     }
 
-    // GET /services/slug/{slug}
-    public function getServiceBySlug(string $slug): ?array
-    {
-        $service = $this->serviceRepository->findBySlug($slug);
-        if (!$service) {
-            return null;
-        }
-        return $this->serviceRepository->getServiceWithContent($service->getId());
-    }
-
     // GET /services/provider/{providerSlug}
     public function getServicesByProviderSlug(string $providerSlug): array
     {
@@ -62,6 +52,17 @@ class ServiceController
             $servicesWithContent[] = $this->serviceRepository->getServiceWithContent($service->getId());
         }
 
+        return $servicesWithContent;
+    }
+
+    // GET /providers/{providerId}/services
+    public function getServicesByProviderId(int $providerId): array
+    {
+        $services = $this->serviceRepository->findByProviderId($providerId);
+        $servicesWithContent = [];
+        foreach ($services as $service) {
+            $servicesWithContent[] = $this->serviceRepository->getServiceWithContent($service->getId());
+        }
         return $servicesWithContent;
     }
 
@@ -379,5 +380,19 @@ class ServiceController
             'slug' => $service->getSlug(),
             'createdAt' => $service->getCreatedAt()->format('Y-m-d H:i:s')
         ], $services);
+    }
+
+    // GET /services/tag/slug/{tagSlug}
+    public function getServicesByTagSlug(string $tagSlug): array
+    {
+        $services = $this->serviceRepository->findByTagSlug($tagSlug);
+        return array_map(fn(Service $service) => $service->toArray(), $services);
+    }
+
+    // GET /services/search/{query}
+    public function searchServices(string $query): array
+    {
+        $services = $this->serviceRepository->search($query);
+        return array_map(fn(Service $service) => $service->toArray(), $services);
     }
 }

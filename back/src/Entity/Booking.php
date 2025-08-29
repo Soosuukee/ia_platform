@@ -54,4 +54,12 @@ class Booking
     {
         $this->status = BookingStatus::fromString($status);
     }
+
+    public function toArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'status' => $this->status->value,
+        ];
+    }
 }

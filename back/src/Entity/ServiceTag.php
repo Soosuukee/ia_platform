@@ -33,4 +33,12 @@ class ServiceTag
     {
         return $this->tagId;
     }
+
+    public function toArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'serviceId' => $this->serviceId,
+        ];
+    }
 }

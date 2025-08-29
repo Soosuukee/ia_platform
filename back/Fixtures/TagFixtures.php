@@ -88,6 +88,26 @@ class TagFixtures
             'Climate AI'
         ];
 
+        // Harmonisation avec les intitulés utilisés dans ServiceFixtures et ArticleFixtures
+        $extraTitles = [
+            // Abréviations / variations présentes dans les fixtures
+            'ML',
+            'MLOps',
+            'R&D',
+            'CV',
+            'LLM',
+            'Évaluation',
+            'BI',
+            'NLP',
+            'Data'
+        ];
+
+        foreach ($extraTitles as $t) {
+            if (!in_array($t, $tags, true)) {
+                $tags[] = $t;
+            }
+        }
+
         foreach ($tags as $tagTitle) {
             $slug = $this->slugificationService->generateTagSlug(
                 $tagTitle,

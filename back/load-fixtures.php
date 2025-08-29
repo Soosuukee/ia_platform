@@ -40,6 +40,9 @@ echo "\n";
 (new SkillFixtures())->load();
 echo "\n";
 
+(new TagFixtures())->load();
+echo "\n";
+
 (new ClientFixtures())->load();
 echo "\n";
 
@@ -56,9 +59,6 @@ echo "\n";
 echo "\n";
 
 (new EducationFixtures())->load();
-echo "\n";
-
-(new TagFixtures())->load();
 echo "\n";
 
 echo "🎉 Toutes les fixtures ont été chargées avec succès.\n";

@@ -54,4 +54,12 @@ class CompletedWorkMedia
     {
         $this->mediaUrl = $mediaUrl;
     }
+
+    public function toArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'workId' => $this->workId,
+        ];
+    }
 }

@@ -7,12 +7,12 @@ namespace Soosuuke\IaPlatform\Entity;
 class ServiceContent
 {
     private int $id;
-    private int $serviceContentId;
+    private int $serviceSectionId;
     private string $content;
 
-    public function __construct(int $serviceContentId, string $content)
+    public function __construct(int $serviceSectionId, string $content)
     {
-        $this->serviceContentId = $serviceContentId;
+        $this->serviceSectionId = $serviceSectionId;
         $this->content = trim($content);
     }
 
@@ -21,13 +21,21 @@ class ServiceContent
         return $this->id;
     }
 
-    public function getServiceContentId(): int
+    public function getServiceSectionId(): int
     {
-        return $this->serviceContentId;
+        return $this->serviceSectionId;
     }
 
     public function getContent(): string
     {
         return $this->content;
+    }
+
+    public function toArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'serviceSectionId' => $this->serviceSectionId,
+        ];
     }
 }

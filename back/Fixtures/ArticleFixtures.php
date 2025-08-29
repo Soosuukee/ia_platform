@@ -8,18 +8,24 @@ use Soosuuke\IaPlatform\Config\Database;
 use Soosuuke\IaPlatform\Entity\Article;
 use Soosuuke\IaPlatform\Repository\ArticleRepository;
 use Soosuuke\IaPlatform\Service\ArticleSlugificationService;
+use Soosuuke\IaPlatform\Service\ProviderImageService;
+use Soosuuke\IaPlatform\Repository\TagRepository;
 
 class ArticleFixtures
 {
     private \PDO $pdo;
     private ArticleRepository $articleRepository;
     private ArticleSlugificationService $slugificationService;
+    private ProviderImageService $imageService;
+    private TagRepository $tagRepository;
 
     public function __construct()
     {
         $this->pdo = Database::connect();
         $this->articleRepository = new ArticleRepository();
         $this->slugificationService = new ArticleSlugificationService();
+        $this->imageService = new ProviderImageService();
+        $this->tagRepository = new TagRepository();
     }
 
     public function load(): void
@@ -176,6 +182,41 @@ class ArticleFixtures
             ];
 
             $this->articleRepository->saveArticleWithContent($article, $sections);
+
+            // Insérer une image de contenu par défaut (URL publique) pour la première section
+            $articleId = (int)$article->getId();
+            $stmt = $this->pdo->prepare('SELECT id FROM article_section WHERE article_id = ? ORDER BY id');
+            $stmt->execute([$articleId]);
+            $sectionRow = $stmt->fetch();
+            if ($sectionRow) {
+                $stmt2 = $this->pdo->prepare('SELECT id FROM article_content WHERE article_content_id = ? ORDER BY id');
+                $stmt2->execute([$sectionRow['id']]);
+                $contentRow = $stmt2->fetch();
+                if ($contentRow && !empty($row['cover'])) {
+                    $url = $this->imageService->copyFixtureArticleImage((int)$row['providerId'], $articleId, (string)$row['cover']);
+                    if ($url) {
+                        $stmt3 = $this->pdo->prepare('INSERT INTO article_image (article_content_id, url) VALUES (?, ?)');
+                        $stmt3->execute([$contentRow['id'], $url]);
+                    }
+                }
+            }
+            // Associer un tag s'il existe
+            if (!empty($row['tag'])) {
+                $tag = $this->tagRepository->findByTitle($row['tag']);
+                if ($tag) {
+                    $stmtTag = $this->pdo->prepare('INSERT INTO article_tag (article_id, tag_id) VALUES (?, ?)');
+                    $stmtTag->execute([$article->getId(), $tag->getId()]);
+                }
+            }
+
+            // Copier cover si fournie et stocker l'URL relative finale
+            if (!empty($row['cover'])) {
+                $finalUrl = $this->imageService->copyFixtureArticleImage((int)$row['providerId'], (int)$article->getId(), (string)$row['cover']);
+                if ($finalUrl) {
+                    $article->setCover($finalUrl);
+                    $this->articleRepository->update($article);
+                }
+            }
             echo "Article créé (avec contenu): {$row['title']} (providerId: {$row['providerId']})\n";
         }
 

@@ -287,6 +287,22 @@ class ProviderImageController
     }
 
     /**
+     * Lister les images d'un provider pour un sous-id explicite
+     */
+    public function listImagesBySub(int $providerId, string $imageType, int $subId): array
+    {
+        return $this->imageService->getProviderImages($providerId, $imageType, $subId);
+    }
+
+    /**
+     * Supprimer une image en précisant le sous-id (service/article/experience/education)
+     */
+    public function deleteImageBySub(int $providerId, string $imageType, int $subId, string $filename): array
+    {
+        return $this->imageService->deleteProviderImage($providerId, $imageType, $filename, $subId);
+    }
+
+    /**
      * Obtenir le message d'erreur d'upload
      */
     private function getUploadErrorMessage(int $errorCode): string

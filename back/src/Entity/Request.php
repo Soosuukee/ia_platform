@@ -90,4 +90,12 @@ class Request
     {
         $this->status = RequestStatus::fromString($status);
     }
+
+    public function toArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'clientId' => $this->clientId,
+        ];
+    }
 }

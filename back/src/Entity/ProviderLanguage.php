@@ -30,4 +30,12 @@ class ProviderLanguage
     {
         return $this->languageId;
     }
+
+    public function toArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'providerId' => $this->providerId,
+        ];
+    }
 }

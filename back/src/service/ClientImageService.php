@@ -26,11 +26,11 @@ class ClientImageService
         }
 
         $sourceProfile = __DIR__ . '/../../fixtures_images/client/profilepictures/' . $profilePicture;
-        $destProfile = $profileDir . '/' . $profilePicture;
-
         if (file_exists($sourceProfile)) {
+            $extension = strtolower(pathinfo($profilePicture, PATHINFO_EXTENSION));
+            $destProfile = $profileDir . '/profile-picture.' . $extension;
             copy($sourceProfile, $destProfile);
-            echo "  📸 Image de profil client copiée : $profilePicture\n";
+            echo "  📸 Image de profil client copiée : profile-picture.$extension\n";
         }
     }
 
@@ -55,7 +55,8 @@ class ClientImageService
             $this->ensureDirectoryExists($baseDir);
 
             // Déterminer le chemin de destination
-            $destinationPath = $baseDir . '/profile/' . $originalFilename;
+            $extension = strtolower(pathinfo($originalFilename, PATHINFO_EXTENSION));
+            $destinationPath = $baseDir . '/profile/profile-picture.' . $extension;
 
             // Gérer les collisions de noms
             if (!$replaceExisting && file_exists($destinationPath)) {
@@ -74,13 +75,16 @@ class ClientImageService
                 ];
             }
 
-            // Retourner le succès avec les informations du fichier
+            // Retour public URL
+            $publicUrl = '/api/v1/images/clients/' . $clientId . '/profile/' . basename($destinationPath);
+
             return [
                 'success' => true,
                 'message' => 'Image de profil uploadée avec succès',
                 'data' => [
                     'filename' => basename($destinationPath),
                     'path' => $destinationPath,
+                    'url' => $publicUrl,
                     'size' => filesize($destinationPath),
                     'mime_type' => mime_content_type($destinationPath)
                 ]
@@ -155,6 +159,7 @@ class ClientImageService
                     $images[] = [
                         'filename' => $file,
                         'path' => $filePath,
+                        'url' => '/api/v1/images/clients/' . $clientId . '/profile/' . $file,
                         'size' => filesize($filePath),
                         'mime_type' => mime_content_type($filePath),
                         'upload_date' => filemtime($filePath)

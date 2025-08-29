@@ -33,4 +33,13 @@ class ArticleTag
     {
         return $this->tagId;
     }
+
+    public function toArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'articleId' => $this->articleId,
+            'tagId' => $this->tagId,
+        ];
+    }
 }
