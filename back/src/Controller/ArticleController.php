@@ -9,6 +9,7 @@ use Soosuuke\IaPlatform\Repository\ProviderRepository;
 use Soosuuke\IaPlatform\Entity\Article;
 use Soosuuke\IaPlatform\Service\ArticleSlugificationService;
 use Soosuuke\IaPlatform\Service\FileUploadService;
+use Soosuuke\IaPlatform\Config\AuthMiddleware;
 
 class ArticleController
 {
@@ -28,37 +29,66 @@ class ArticleController
     // GET /articles
     public function getAllArticles(): array
     {
-        return $this->articleRepository->findAll();
+        $articles = $this->articleRepository->findAll();
+        return array_map(function (Article $article) {
+            return $article->toArray();
+        }, $articles);
     }
 
     // GET /articles/{id}
-    public function getArticleById(int $id): ?Article
+    public function getArticleById(int $id): ?array
     {
-        return $this->articleRepository->findById($id);
+        return $this->articleRepository->getArticleWithContent($id);
     }
 
     // GET /articles/slug/{slug}
-    public function getArticleBySlug(string $slug): ?Article
+    public function getArticleBySlug(string $slug): array
     {
-        return $this->articleRepository->findBySlug($slug);
+        // Retourner la liste des articles filtrés par slug (pattern)
+        // Ici, on renvoie un tableau d'articles correspondants (complet via getArticleWithContent)
+        $found = $this->articleRepository->findBySlug($slug);
+        if (!$found) {
+            return [];
+        }
+        return $this->articleRepository->getArticleWithContent($found->getId());
     }
 
-    // GET /articles/provider/{providerId}
-    public function getArticlesByProviderId(int $providerId): array
+    // GET /articles/slug/{slug}/with-content
+    public function getArticleBySlugWithContent(string $slug): ?array
     {
-        return $this->articleRepository->findByProviderId($providerId);
+        $article = $this->articleRepository->findBySlug($slug);
+        if (!$article) {
+            return null;
+        }
+        return $this->articleRepository->getArticleWithContent($article->getId());
+    }
+
+    // GET /articles/provider/{providerSlug}
+    public function getArticlesByProviderSlug(string $providerSlug): array
+    {
+        $articles = $this->articleRepository->findByProviderSlug($providerSlug);
+
+        // Retourner les articles avec leur contenu complet
+        $articlesWithContent = [];
+        foreach ($articles as $article) {
+            $articlesWithContent[] = $this->articleRepository->getArticleWithContent($article->getId());
+        }
+
+        return $articlesWithContent;
     }
 
     // GET /articles/published
     public function getPublishedArticles(): array
     {
-        return $this->articleRepository->findPublished();
+        $articles = $this->articleRepository->findPublished();
+        return array_map(fn(Article $a) => $a->toArray(), $articles);
     }
 
     // GET /articles/featured
     public function getFeaturedArticles(): array
     {
-        return $this->articleRepository->findFeatured();
+        $articles = $this->articleRepository->findFeatured();
+        return array_map(fn(Article $a) => $a->toArray(), $articles);
     }
 
     // POST /articles
@@ -74,9 +104,9 @@ class ArticleController
 
         $article = new Article(
             (int) $data['providerId'],
+            (int) ($data['languageId'] ?? 1), // Default language ID
             $data['title'],
             $data['summary'] ?? '',
-            $data['tag'] ?? '',
             $slug,
             $data['isPublished'] ?? false,
             $data['isFeatured'] ?? false,
@@ -88,7 +118,7 @@ class ArticleController
     }
 
     // GET /providers/{providerSlug}/articles/{articleSlug}
-    public function getArticleByProviderAndSlug(string $providerSlug, string $articleSlug): ?Article
+    public function getArticleByProviderAndSlug(string $providerSlug, string $articleSlug): ?array
     {
         // D'abord trouver le provider par son slug
         $provider = $this->providerRepository->findBySlug($providerSlug);
@@ -102,8 +132,10 @@ class ArticleController
             return null;
         }
 
-        return $article;
+        return $this->articleRepository->getArticleWithContent($article->getId());
     }
+
+
 
     // PUT /articles/{id}
     public function updateArticle(int $id, array $data): ?Article
@@ -113,12 +145,21 @@ class ArticleController
             return null;
         }
 
+        // Security: only owner provider can update
+        $currentUserId = AuthMiddleware::getCurrentUserId();
+        $currentUserType = AuthMiddleware::getCurrentUserType();
+        if ($currentUserType !== 'provider' || $article->getProviderId() !== $currentUserId) {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'message' => 'Accès interdit']);
+            return null;
+        }
+
         // Mise à jour des propriétés
         $article = new Article(
             $data['providerId'] ?? $article->getProviderId(),
+            $data['languageId'] ?? $article->getLanguageId(),
             $data['title'] ?? $article->getTitle(),
             $data['summary'] ?? $article->getSummary(),
-            $data['tag'] ?? $article->getTag(),
             $data['slug'] ?? $article->getSlug(),
             $data['isPublished'] ?? $article->isPublished(),
             $data['isFeatured'] ?? $article->isFeatured(),
@@ -141,6 +182,57 @@ class ArticleController
         return true;
     }
 
+    // PUT/PATCH /articles/slug/{slug}
+    public function updateArticleBySlug(string $slug, array $data): ?Article
+    {
+        $article = $this->articleRepository->findBySlug($slug);
+        if (!$article) {
+            return null;
+        }
+
+        $currentUserId = AuthMiddleware::getCurrentUserId();
+        $currentUserType = AuthMiddleware::getCurrentUserType();
+        if ($currentUserType !== 'provider' || $article->getProviderId() !== $currentUserId) {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'message' => 'Accès interdit']);
+            return null;
+        }
+
+        $article = new Article(
+            $data['providerId'] ?? $article->getProviderId(),
+            $data['languageId'] ?? $article->getLanguageId(),
+            $data['title'] ?? $article->getTitle(),
+            $data['summary'] ?? $article->getSummary(),
+            $data['slug'] ?? $article->getSlug(),
+            $data['isPublished'] ?? $article->isPublished(),
+            $data['isFeatured'] ?? $article->isFeatured(),
+            $data['cover'] ?? $article->getCover()
+        );
+
+        $this->articleRepository->update($article);
+        return $article;
+    }
+
+    // DELETE /articles/slug/{slug}
+    public function deleteArticleBySlug(string $slug): bool
+    {
+        $article = $this->articleRepository->findBySlug($slug);
+        if (!$article) {
+            return false;
+        }
+
+        $currentUserId = AuthMiddleware::getCurrentUserId();
+        $currentUserType = AuthMiddleware::getCurrentUserType();
+        if ($currentUserType !== 'provider' || $article->getProviderId() !== $currentUserId) {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'message' => 'Accès interdit']);
+            return false;
+        }
+
+        $this->articleRepository->delete($article->getId());
+        return true;
+    }
+
     // GET /articles/{id}/with-content
     public function getArticleWithContent(int $id): ?array
     {
@@ -152,9 +244,9 @@ class ArticleController
     {
         $article = new Article(
             (int) $data['providerId'],
+            (int) ($data['languageId'] ?? 1), // Default language ID
             $data['title'],
             $data['summary'] ?? '',
-            $data['tag'] ?? '',
             $data['slug'] ?? null,
             $data['isPublished'] ?? false,
             $data['isFeatured'] ?? false,
@@ -167,6 +259,47 @@ class ArticleController
         return $article;
     }
 
+    // PATCH /articles/{id}/with-content
+    public function patchArticleWithContent(int $id, array $data): ?Article
+    {
+        $article = $this->articleRepository->findById($id);
+        if (!$article) {
+            return null;
+        }
+
+        // Security: only owner provider can patch
+        $currentUserId = AuthMiddleware::getCurrentUserId();
+        $currentUserType = AuthMiddleware::getCurrentUserType();
+        if ($currentUserType !== 'provider' || $article->getProviderId() !== $currentUserId) {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'message' => 'Accès interdit']);
+            return null;
+        }
+
+        // Mettre à jour quelques métadonnées si fournies
+        if (isset($data['title'])) {
+            $article->setTitle($data['title']);
+        }
+        if (isset($data['summary'])) {
+            $article->setSummary($data['summary']);
+        }
+
+        if (isset($data['isPublished'])) {
+            $article->setIsPublished((bool)$data['isPublished']);
+        }
+        if (isset($data['isFeatured'])) {
+            $article->setIsFeatured((bool)$data['isFeatured']);
+        }
+        if (isset($data['cover'])) {
+            $article->setCover($data['cover']);
+        }
+
+        $sections = $data['sections'] ?? [];
+        $this->articleRepository->saveArticleWithContent($article, $sections);
+
+        return $article;
+    }
+
     // POST /articles/{id}/cover
     public function uploadCover(int $articleId, array $file): array
     {
@@ -176,6 +309,16 @@ class ArticleController
                 return [
                     'success' => false,
                     'message' => 'Article non trouvé'
+                ];
+            }
+
+            // Security: only owner provider can update cover
+            $currentUserId = AuthMiddleware::getCurrentUserId();
+            $currentUserType = AuthMiddleware::getCurrentUserType();
+            if ($currentUserType !== 'provider' || $article->getProviderId() !== $currentUserId) {
+                return [
+                    'success' => false,
+                    'message' => 'Accès interdit'
                 ];
             }
 
@@ -232,5 +375,20 @@ class ArticleController
                 'message' => 'Erreur lors de l\'upload: ' . $e->getMessage()
             ];
         }
+    }
+
+    public function getArticlesByTag(int $tagId): array
+    {
+        $articles = $this->articleRepository->findByTagId($tagId);
+        return array_map(fn(Article $article) => [
+            'id' => $article->getId(),
+            'title' => $article->getTitle(),
+            'summary' => $article->getSummary(),
+            'slug' => $article->getSlug(),
+            'isPublished' => $article->isPublished(),
+            'isFeatured' => $article->isFeatured(),
+            'cover' => $article->getCover(),
+            'publishedAt' => $article->getPublishedAt()->format('Y-m-d H:i:s')
+        ], $articles);
     }
 }

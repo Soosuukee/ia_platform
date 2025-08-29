@@ -23,4 +23,12 @@ class Country
     {
         return $this->name;
     }
+
+    public function toArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+        ];
+    }
 }

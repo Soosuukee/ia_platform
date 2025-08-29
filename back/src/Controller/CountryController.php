@@ -19,13 +19,15 @@ class CountryController
     // GET /countries
     public function getAllCountries(): array
     {
-        return $this->countryRepository->findAll();
+        $countries = $this->countryRepository->findAll();
+        return array_map(fn(Country $c) => $c->toArray(), $countries);
     }
 
     // GET /countries/{id}
-    public function getCountryById(int $id): ?Country
+    public function getCountryById(int $id): ?array
     {
-        return $this->countryRepository->findById($id);
+        $country = $this->countryRepository->findById($id);
+        return $country ? $country->toArray() : null;
     }
 
     // POST /countries

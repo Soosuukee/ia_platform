@@ -9,6 +9,7 @@ use Soosuuke\IaPlatform\Entity\CompletedWorkMedia;
 use Soosuuke\IaPlatform\Repository\CompletedWorkRepository;
 use Soosuuke\IaPlatform\Repository\CompletedWorkMediaRepository;
 use DateTimeImmutable;
+use Soosuuke\IaPlatform\Config\AuthMiddleware;
 
 class CompletedWorkController
 {
@@ -70,8 +71,8 @@ class CompletedWorkController
     // POST /completed-works
     public function store(): void
     {
-        
-        $providerId = $_SESSION['provider_id'] ?? null;
+
+        $providerId = AuthMiddleware::getCurrentUserType() === 'provider' ? AuthMiddleware::getCurrentUserId() : null;
 
         if (!$providerId) {
             http_response_code(401);
@@ -165,8 +166,8 @@ class CompletedWorkController
     // PATCH /completed-works/{id}
     public function patch(int $id): void
     {
-        
-        $providerId = $_SESSION['provider_id'] ?? null;
+
+        $providerId = AuthMiddleware::getCurrentUserType() === 'provider' ? AuthMiddleware::getCurrentUserId() : null;
 
         $work = $this->workRepo->findById($id);
         if (!$work || $work->getProviderId() !== $providerId) {
@@ -238,7 +239,7 @@ class CompletedWorkController
     // DELETE /completed-works/{id}
     public function destroy(int $id): void
     {
-        
+
         $providerId = $_SESSION['provider_id'] ?? null;
 
         $work = $this->workRepo->findById($id);

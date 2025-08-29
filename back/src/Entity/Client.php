@@ -144,4 +144,23 @@ class Client implements AccountHolder
     {
         return $this->joinedAt;
     }
+
+    public function toArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'firstName' => $this->firstName,
+            'lastName' => $this->lastName,
+            'email' => $this->email,
+            'profilePicture' => $this->profilePicture,
+            'joinedAt' => $this->joinedAt->format('Y-m-d\TH:i:s'),
+            'slug' => $this->slug,
+            'countryId' => $this->countryId,
+            'city' => $this->city,
+            'state' => $this->state,
+            'postalCode' => $this->postalCode,
+            'address' => $this->address,
+            'role' => $this->getRole(),
+        ];
+    }
 }

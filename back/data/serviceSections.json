@@ -138,5 +138,65 @@
     "serviceSectionId": 28,
     "serviceId": 9,
     "title": "Cas d'usage"
+  },
+  {
+    "serviceSectionId": 29,
+    "serviceId": 10,
+    "title": "Présentation"
+  },
+  {
+    "serviceSectionId": 30,
+    "serviceId": 10,
+    "title": "Fonctionnalités"
+  },
+  {
+    "serviceSectionId": 31,
+    "serviceId": 10,
+    "title": "Tarification"
+  },
+  {
+    "serviceSectionId": 32,
+    "serviceId": 11,
+    "title": "Présentation"
+  },
+  {
+    "serviceSectionId": 33,
+    "serviceId": 11,
+    "title": "Fonctionnalités"
+  },
+  {
+    "serviceSectionId": 34,
+    "serviceId": 11,
+    "title": "Tarification"
+  },
+  {
+    "serviceSectionId": 35,
+    "serviceId": 12,
+    "title": "Présentation"
+  },
+  {
+    "serviceSectionId": 36,
+    "serviceId": 12,
+    "title": "Fonctionnalités"
+  },
+  {
+    "serviceSectionId": 37,
+    "serviceId": 12,
+    "title": "Tarification"
+  },
+  {
+    "serviceSectionId": 38,
+    "serviceId": 13,
+    "title": "Présentation"
+  },
+  {
+    "serviceSectionId": 39,
+    "serviceId": 13,
+    "title": "Fonctionnalités"
+  },
+  {
+    "serviceSectionId": 40,
+    "serviceId": 13,
+    "title": "Tarification"
   }
 ]

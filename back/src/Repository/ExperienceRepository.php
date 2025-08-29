@@ -111,10 +111,10 @@ class ExperienceRepository
             $data['title'],
             $data['company_name'],
             $data['first_task'],
-            $data['second_task'] ?? null,
-            $data['third_task'] ?? null,
             new \DateTimeImmutable($data['started_at']),
             $data['ended_at'] ? new \DateTimeImmutable($data['ended_at']) : null,
+            $data['second_task'] ?? null,
+            $data['third_task'] ?? null,
             $data['company_logo'] ?? null
         );
 

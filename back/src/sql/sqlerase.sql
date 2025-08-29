@@ -2,32 +2,40 @@ USE dev_db;
 
 SET FOREIGN_KEY_CHECKS = 0;
 
-DELETE FROM booking;
-DELETE FROM availability_slot;
-DELETE FROM completed_work_media;
-DELETE FROM completed_work;
-DELETE FROM provider_skill;
-DELETE FROM provided_service;
-DELETE FROM provider_diploma;
-DELETE FROM review;
-DELETE FROM request;
-DELETE FROM notification;
-DELETE FROM client;
-DELETE FROM provider;
-DELETE FROM skill;
+DROP TABLE IF EXISTS completed_work_media;
+DROP TABLE IF EXISTS completed_work;
+DROP TABLE IF EXISTS review;
+DROP TABLE IF EXISTS request;
+DROP TABLE IF EXISTS notification;
+DROP TABLE IF EXISTS booking;
+DROP TABLE IF EXISTS availability_slot;
 
-ALTER TABLE booking AUTO_INCREMENT = 1;
-ALTER TABLE availability_slot AUTO_INCREMENT = 1;
-ALTER TABLE completed_work_media AUTO_INCREMENT = 1;
-ALTER TABLE completed_work AUTO_INCREMENT = 1;
-ALTER TABLE provider_skill AUTO_INCREMENT = 1;
-ALTER TABLE provided_service AUTO_INCREMENT = 1;
-ALTER TABLE provider_diploma AUTO_INCREMENT = 1;
-ALTER TABLE review AUTO_INCREMENT = 1;
-ALTER TABLE request AUTO_INCREMENT = 1;
-ALTER TABLE notification AUTO_INCREMENT = 1;
-ALTER TABLE client AUTO_INCREMENT = 1;
-ALTER TABLE provider AUTO_INCREMENT = 1;
-ALTER TABLE skill AUTO_INCREMENT = 1;
+DROP TABLE IF EXISTS provider_language;
+DROP TABLE IF EXISTS provider_job;
+DROP TABLE IF EXISTS job;
+DROP TABLE IF EXISTS provider_hard_skills;
+DROP TABLE IF EXISTS provider_soft_skills;
+DROP TABLE IF EXISTS hard_skill;
+DROP TABLE IF EXISTS soft_skill;
+
+DROP TABLE IF EXISTS article_image;
+DROP TABLE IF EXISTS article_content;
+DROP TABLE IF EXISTS article_section;
+DROP TABLE IF EXISTS article;
+
+DROP TABLE IF EXISTS service_image;
+DROP TABLE IF EXISTS service_content;
+DROP TABLE IF EXISTS service_section;
+DROP TABLE IF EXISTS service;
+
+DROP TABLE IF EXISTS experience;
+DROP TABLE IF EXISTS education;
+DROP TABLE IF EXISTS social_link;
+DROP TABLE IF EXISTS location;
+
+DROP TABLE IF EXISTS client;
+DROP TABLE IF EXISTS provider;
+DROP TABLE IF EXISTS language;
+DROP TABLE IF EXISTS country;
 
 SET FOREIGN_KEY_CHECKS = 1;

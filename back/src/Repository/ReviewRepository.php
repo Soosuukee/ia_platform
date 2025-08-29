@@ -44,6 +44,26 @@ class ReviewRepository
         return $reviews;
     }
 
+    public function findAllByProviderSlug(string $providerSlug, int $limit = 10): array
+    {
+        $stmt = $this->pdo->prepare('
+            SELECT r.* FROM review r
+            INNER JOIN provider p ON r.provider_id = p.id
+            WHERE p.slug = ?
+            ORDER BY r.created_at DESC LIMIT ?
+        ');
+        if (!$stmt->execute([$providerSlug, $limit])) {
+            throw new \RuntimeException("Failed to fetch reviews for provider slug $providerSlug");
+        }
+
+        $reviews = [];
+        while ($row = $stmt->fetch()) {
+            $reviews[] = $this->mapToReview($row);
+        }
+
+        return $reviews;
+    }
+
     public function findAllByClientId(int $clientId, int $limit = 10): array
     {
         $stmt = $this->pdo->prepare('SELECT * FROM review WHERE client_id = ? ORDER BY created_at DESC LIMIT ?');

@@ -19,13 +19,15 @@ class LanguageController
     // GET /languages
     public function getAllLanguages(): array
     {
-        return $this->languageRepository->findAll();
+        $languages = $this->languageRepository->findAll();
+        return array_map(fn(Language $l) => $l->toArray(), $languages);
     }
 
     // GET /languages/{id}
-    public function getLanguageById(int $id): ?Language
+    public function getLanguageById(int $id): ?array
     {
-        return $this->languageRepository->findById($id);
+        $lang = $this->languageRepository->findById($id);
+        return $lang ? $lang->toArray() : null;
     }
 
     // POST /languages

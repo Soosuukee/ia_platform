@@ -8,18 +8,21 @@ use Soosuuke\IaPlatform\Config\Database;
 use Soosuuke\IaPlatform\Entity\Client;
 use Soosuuke\IaPlatform\Repository\ClientRepository;
 use Soosuuke\IaPlatform\Service\ClientSlugificationService;
+use Soosuuke\IaPlatform\Service\ClientImageService;
 
 class ClientFixtures
 {
     private \PDO $pdo;
     private ClientRepository $clientRepository;
     private ClientSlugificationService $slugificationService;
+    private ClientImageService $imageService;
 
     public function __construct()
     {
         $this->pdo = Database::connect();
         $this->clientRepository = new ClientRepository();
         $this->slugificationService = new ClientSlugificationService();
+        $this->imageService = new ClientImageService();
     }
 
     public function load(): void
@@ -35,7 +38,7 @@ class ClientFixtures
                 'password' => password_hash('password123', PASSWORD_DEFAULT),
                 'countryId' => 1, // France
                 'city' => 'Paris',
-                'profilePicture' => '/uploads/pfp/client-1-avatar.webp'
+                'profilePicture' => 'clientavatar-01.webp'
             ],
             [
                 'firstName' => 'Sarah',
@@ -44,7 +47,7 @@ class ClientFixtures
                 'password' => password_hash('password123', PASSWORD_DEFAULT),
                 'countryId' => 2, // États-Unis
                 'city' => 'New York',
-                'profilePicture' => '/uploads/pfp/client-2-avatar.avif'
+                'profilePicture' => 'clientavatar-02.avif'
             ],
             [
                 'firstName' => 'Yuki',
@@ -53,7 +56,7 @@ class ClientFixtures
                 'password' => password_hash('password123', PASSWORD_DEFAULT),
                 'countryId' => 3, // Japon
                 'city' => 'Tokyo',
-                'profilePicture' => '/uploads/pfp/client-3-avatar.webp'
+                'profilePicture' => 'clientavatar-03.webp'
             ],
             [
                 'firstName' => 'Maria',
@@ -62,7 +65,7 @@ class ClientFixtures
                 'password' => password_hash('password123', PASSWORD_DEFAULT),
                 'countryId' => 6, // Espagne
                 'city' => 'Madrid',
-                'profilePicture' => '/uploads/pfp/client-4-avatar.jpg'
+                'profilePicture' => 'clientavatar-04.jpg'
             ],
             [
                 'firstName' => 'David',
@@ -71,7 +74,7 @@ class ClientFixtures
                 'password' => password_hash('password123', PASSWORD_DEFAULT),
                 'countryId' => 7, // Singapour
                 'city' => 'Singapore',
-                'profilePicture' => '/uploads/pfp/client-5-avatar.webp'
+                'profilePicture' => 'clientavatar-05.webp'
             ],
             [
                 'firstName' => 'Emma',
@@ -80,7 +83,7 @@ class ClientFixtures
                 'password' => password_hash('password123', PASSWORD_DEFAULT),
                 'countryId' => 8, // Royaume-Uni
                 'city' => 'London',
-                'profilePicture' => '/uploads/pfp/client-6-avatar.jpg'
+                'profilePicture' => 'clientavatar-06.jpg'
             ]
         ];
 
@@ -106,6 +109,10 @@ class ClientFixtures
             $client->setSlug($slug);
 
             $this->clientRepository->save($client);
+
+            // Créer la structure de dossiers et copier les images
+            $this->imageService->createClientImageStructure($client->getId(), $clientData['profilePicture']);
+
             echo "Client créé : {$clientData['firstName']} {$clientData['lastName']} (slug: $slug)\n";
         }
 

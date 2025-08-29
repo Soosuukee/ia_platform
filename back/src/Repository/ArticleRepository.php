@@ -60,6 +60,24 @@ class ArticleRepository
         return $articles;
     }
 
+    public function findByProviderSlug(string $providerSlug): array
+    {
+        $stmt = $this->pdo->prepare('
+            SELECT a.* FROM article a
+            INNER JOIN provider p ON a.provider_id = p.id
+            WHERE p.slug = ?
+            ORDER BY a.published_at DESC
+        ');
+        $stmt->execute([$providerSlug]);
+
+        $articles = [];
+        while ($row = $stmt->fetch()) {
+            $articles[] = $this->mapToArticle($row);
+        }
+
+        return $articles;
+    }
+
     public function findPublished(): array
     {
         $stmt = $this->pdo->query('SELECT * FROM article WHERE is_published = 1 ORDER BY published_at DESC');
@@ -87,20 +105,20 @@ class ArticleRepository
     public function save(Article $article): void
     {
         $stmt = $this->pdo->prepare('
-            INSERT INTO article (provider_id, title, slug, published_at, summary, is_published, is_featured, cover, tag, updated_at)
+            INSERT INTO article (provider_id, language_id, title, slug, published_at, summary, is_published, is_featured, cover, updated_at)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ');
 
         $stmt->execute([
             $article->getProviderId(),
+            $article->getLanguageId(),
             $article->getTitle(),
             $article->getSlug(),
             $article->getPublishedAt()->format('Y-m-d H:i:s'),
             $article->getSummary(),
-            $article->isPublished(),
-            $article->isFeatured(),
+            (int) $article->isPublished(),
+            (int) $article->isFeatured(),
             $article->getCover(),
-            $article->getTag(),
             $article->getUpdatedAt()->format('Y-m-d H:i:s')
         ]);
 
@@ -115,19 +133,19 @@ class ArticleRepository
     {
         $stmt = $this->pdo->prepare('
             UPDATE article
-            SET title = ?, slug = ?, published_at = ?, summary = ?, is_published = ?, is_featured = ?, cover = ?, tag = ?, updated_at = ?
+            SET language_id = ?, title = ?, slug = ?, published_at = ?, summary = ?, is_published = ?, is_featured = ?, cover = ?, updated_at = ?
             WHERE id = ?
         ');
 
         $stmt->execute([
+            $article->getLanguageId(),
             $article->getTitle(),
             $article->getSlug(),
             $article->getPublishedAt()->format('Y-m-d H:i:s'),
             $article->getSummary(),
-            $article->isPublished(),
-            $article->isFeatured(),
+            (int) $article->isPublished(),
+            (int) $article->isFeatured(),
             $article->getCover(),
-            $article->getTag(),
             $article->getUpdatedAt()->format('Y-m-d H:i:s'),
             $article->getId()
         ]);
@@ -145,6 +163,43 @@ class ArticleRepository
         $stmt->execute([$providerId]);
     }
 
+    public function findByTagId(int $tagId): array
+    {
+        $stmt = $this->pdo->prepare('
+            SELECT a.* FROM article a
+            INNER JOIN article_tag at ON a.id = at.article_id
+            WHERE at.tag_id = ?
+            ORDER BY a.published_at DESC
+        ');
+        $stmt->execute([$tagId]);
+
+        $articles = [];
+        while ($row = $stmt->fetch()) {
+            $articles[] = $this->mapToArticle($row);
+        }
+
+        return $articles;
+    }
+
+    public function findByTagSlug(string $tagSlug): array
+    {
+        $stmt = $this->pdo->prepare('
+            SELECT a.* FROM article a
+            INNER JOIN article_tag at ON a.id = at.article_id
+            INNER JOIN tag t ON at.tag_id = t.id
+            WHERE t.slug = ?
+            ORDER BY a.published_at DESC
+        ');
+        $stmt->execute([$tagSlug]);
+
+        $articles = [];
+        while ($row = $stmt->fetch()) {
+            $articles[] = $this->mapToArticle($row);
+        }
+
+        return $articles;
+    }
+
     public function getArticleWithContent(int $articleId): ?array
     {
         // Récupérer l'article
@@ -159,7 +214,7 @@ class ArticleRepository
         $sections = $stmt->fetchAll();
 
         $articleData = [
-            'article' => $article,
+            'article' => $article->toArray(),
             'sections' => []
         ];
 
@@ -254,9 +309,9 @@ class ArticleRepository
     {
         $article = new Article(
             (int)$data['provider_id'],
+            (int)$data['language_id'],
             $data['title'],
             $data['summary'],
-            $data['tag'],
             $data['slug'],
             (bool)$data['is_published'],
             (bool)$data['is_featured'],

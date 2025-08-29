@@ -19,19 +19,28 @@ class JobController
     // GET /jobs
     public function getAllJobs(): array
     {
-        return $this->jobRepository->findAll();
+        $jobs = $this->jobRepository->findAll();
+        return array_map(fn(Job $j) => $j->toArray(), $jobs);
     }
 
     // GET /jobs/{id}
-    public function getJobById(int $id): ?Job
+    public function getJobById(int $id): ?array
     {
-        return $this->jobRepository->findById($id);
+        $job = $this->jobRepository->findById($id);
+        return $job ? $job->toArray() : null;
+    }
+
+    // GET /jobs/slug/{slug}
+    public function getJobBySlug(string $slug): ?array
+    {
+        $job = $this->jobRepository->findBySlug($slug);
+        return $job ? $job->toArray() : null;
     }
 
     // POST /jobs
     public function createJob(array $data): Job
     {
-        $job = new Job($data['title']);
+        $job = new Job($data['title'], $data['slug'] ?? null);
         $this->jobRepository->save($job);
         return $job;
     }
@@ -44,7 +53,7 @@ class JobController
             return null;
         }
 
-        $job = new Job($data['title'] ?? $job->getTitle());
+        $job = new Job($data['title'] ?? $job->getTitle(), $data['slug'] ?? $job->getSlug());
         $this->jobRepository->update($job);
         return $job;
     }

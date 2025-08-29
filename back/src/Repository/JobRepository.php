@@ -38,10 +38,19 @@ class JobRepository
         return $jobs;
     }
 
+    public function findBySlug(string $slug): ?Job
+    {
+        $stmt = $this->pdo->prepare('SELECT * FROM job WHERE slug = ?');
+        $stmt->execute([$slug]);
+        $data = $stmt->fetch();
+
+        return $data ? $this->mapToJob($data) : null;
+    }
+
     public function save(Job $job): void
     {
-        $stmt = $this->pdo->prepare('INSERT INTO job (title) VALUES (?)');
-        $stmt->execute([$job->getTitle()]);
+        $stmt = $this->pdo->prepare('INSERT INTO job (title, slug) VALUES (?, ?)');
+        $stmt->execute([$job->getTitle(), $job->getSlug()]);
 
         $id = (int) $this->pdo->lastInsertId();
         $ref = new ReflectionClass(Job::class);
@@ -52,8 +61,8 @@ class JobRepository
 
     public function update(Job $job): void
     {
-        $stmt = $this->pdo->prepare('UPDATE job SET title = ? WHERE id = ?');
-        $stmt->execute([$job->getTitle(), $job->getId()]);
+        $stmt = $this->pdo->prepare('UPDATE job SET title = ?, slug = ? WHERE id = ?');
+        $stmt->execute([$job->getTitle(), $job->getSlug(), $job->getId()]);
     }
 
     public function delete(int $id): void
@@ -64,7 +73,7 @@ class JobRepository
 
     private function mapToJob(array $data): Job
     {
-        $job = new Job($data['title']);
+        $job = new Job($data['title'], $data['slug']);
 
         $ref = new ReflectionClass(Job::class);
         $idProp = $ref->getProperty('id');

@@ -60,6 +60,24 @@ class ServiceRepository
         return $services;
     }
 
+    public function findByProviderSlug(string $providerSlug): array
+    {
+        $stmt = $this->pdo->prepare('
+            SELECT s.* FROM service s
+            INNER JOIN provider p ON s.provider_id = p.id
+            WHERE p.slug = ?
+            ORDER BY s.created_at DESC
+        ');
+        $stmt->execute([$providerSlug]);
+
+        $services = [];
+        while ($row = $stmt->fetch()) {
+            $services[] = $this->mapToService($row);
+        }
+
+        return $services;
+    }
+
     public function findActive(): array
     {
         $stmt = $this->pdo->query('SELECT * FROM service WHERE is_active = 1 ORDER BY created_at DESC');
@@ -87,18 +105,18 @@ class ServiceRepository
     public function save(Service $service): void
     {
         $stmt = $this->pdo->prepare('
-            INSERT INTO service (provider_id, summary, tag, max_price, min_price, is_active, is_featured, cover, slug)
+            INSERT INTO service (provider_id, title, summary, max_price, min_price, is_active, is_featured, cover, slug)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         ');
 
         $stmt->execute([
             $service->getProviderId(),
+            $service->getTitle(),
             $service->getSummary(),
-            $service->getTag(),
             $service->getMaxPrice(),
             $service->getMinPrice(),
-            $service->isActive(),
-            $service->isFeatured(),
+            (int) $service->isActive(),
+            (int) $service->isFeatured(),
             $service->getCover(),
             $service->getSlug()
         ]);
@@ -114,17 +132,17 @@ class ServiceRepository
     {
         $stmt = $this->pdo->prepare('
             UPDATE service
-            SET summary = ?, tag = ?, max_price = ?, min_price = ?, is_active = ?, is_featured = ?, cover = ?, slug = ?
+            SET title = ?, summary = ?, max_price = ?, min_price = ?, is_active = ?, is_featured = ?, cover = ?, slug = ?
             WHERE id = ?
         ');
 
         $stmt->execute([
+            $service->getTitle(),
             $service->getSummary(),
-            $service->getTag(),
             $service->getMaxPrice(),
             $service->getMinPrice(),
-            $service->isActive(),
-            $service->isFeatured(),
+            (int) $service->isActive(),
+            (int) $service->isFeatured(),
             $service->getCover(),
             $service->getSlug(),
             $service->getId()
@@ -143,6 +161,43 @@ class ServiceRepository
         $stmt->execute([$providerId]);
     }
 
+    public function findByTagId(int $tagId): array
+    {
+        $stmt = $this->pdo->prepare('
+            SELECT s.* FROM service s
+            INNER JOIN service_tag st ON s.id = st.service_id
+            WHERE st.tag_id = ?
+            ORDER BY s.created_at DESC
+        ');
+        $stmt->execute([$tagId]);
+
+        $services = [];
+        while ($row = $stmt->fetch()) {
+            $services[] = $this->mapToService($row);
+        }
+
+        return $services;
+    }
+
+    public function findByTagSlug(string $tagSlug): array
+    {
+        $stmt = $this->pdo->prepare('
+            SELECT s.* FROM service s
+            INNER JOIN service_tag st ON s.id = st.service_id
+            INNER JOIN tag t ON st.tag_id = t.id
+            WHERE t.slug = ?
+            ORDER BY s.created_at DESC
+        ');
+        $stmt->execute([$tagSlug]);
+
+        $services = [];
+        while ($row = $stmt->fetch()) {
+            $services[] = $this->mapToService($row);
+        }
+
+        return $services;
+    }
+
     public function getServiceWithContent(int $serviceId): ?array
     {
         // Récupérer le service
@@ -157,7 +212,7 @@ class ServiceRepository
         $sections = $stmt->fetchAll();
 
         $serviceData = [
-            'service' => $service,
+            'service' => $service->toArray(),
             'sections' => []
         ];
 
@@ -201,11 +256,11 @@ class ServiceRepository
             // Sauvegarder le service
             if ($service->getId()) {
                 $this->update($service);
+                $serviceId = $service->getId();
             } else {
                 $this->save($service);
+                $serviceId = $service->getId();
             }
-
-            $serviceId = $service->getId();
 
             // Supprimer l'ancien contenu
             $stmt = $this->pdo->prepare('DELETE FROM service_image WHERE service_content_id IN (SELECT id FROM service_content WHERE service_content_id IN (SELECT id FROM service_section WHERE service_id = ?))');
@@ -252,13 +307,13 @@ class ServiceRepository
     {
         $service = new Service(
             (int)$data['provider_id'],
-            $data['summary'],
-            $data['tag'],
+            $data['title'] ?? '',
             $data['max_price'] !== null ? (float)$data['max_price'] : null,
             $data['min_price'] !== null ? (float)$data['min_price'] : null,
-            (bool)$data['is_active'],
-            (bool)$data['is_featured'],
+            (bool)($data['is_active'] ?? false),
+            (bool)($data['is_featured'] ?? false),
             $data['cover'],
+            $data['summary'],
             $data['slug']
         );
 

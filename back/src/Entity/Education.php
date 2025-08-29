@@ -79,4 +79,18 @@ class Education
     {
         $this->institutionImage = $institutionImage;
     }
+
+    public function toArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'providerId' => $this->providerId,
+            'title' => $this->title,
+            'institutionName' => $this->institutionName,
+            'description' => $this->description,
+            'startedAt' => $this->startedAt->format('Y-m-d'),
+            'endedAt' => $this->endedAt?->format('Y-m-d'),
+            'institutionImage' => $this->institutionImage,
+        ];
+    }
 }

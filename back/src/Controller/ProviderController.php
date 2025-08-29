@@ -8,7 +8,7 @@ use Soosuuke\IaPlatform\Repository\ProviderRepository;
 use Soosuuke\IaPlatform\Repository\CountryRepository;
 use Soosuuke\IaPlatform\Repository\ProviderSoftSkillRepository;
 use Soosuuke\IaPlatform\Repository\ProviderHardSkillRepository;
-use Soosuuke\IaPlatform\Repository\ProviderJobRepository;
+
 use Soosuuke\IaPlatform\Repository\ProviderLanguageRepository;
 use Soosuuke\IaPlatform\Repository\EducationRepository;
 use Soosuuke\IaPlatform\Repository\ExperienceRepository;
@@ -16,6 +16,7 @@ use Soosuuke\IaPlatform\Repository\CompletedWorkRepository;
 use Soosuuke\IaPlatform\Entity\Provider;
 use Soosuuke\IaPlatform\Service\ProviderSlugificationService;
 use Soosuuke\IaPlatform\Service\FileUploadService;
+use Soosuuke\IaPlatform\Config\AuthMiddleware;
 
 class ProviderController
 {
@@ -23,7 +24,7 @@ class ProviderController
     private CountryRepository $countryRepository;
     private ProviderSoftSkillRepository $softSkillRepository;
     private ProviderHardSkillRepository $hardSkillRepository;
-    private ProviderJobRepository $jobRepository;
+
     private ProviderLanguageRepository $languageRepository;
     private EducationRepository $educationRepository;
     private ExperienceRepository $experienceRepository;
@@ -37,7 +38,7 @@ class ProviderController
         $this->countryRepository = new CountryRepository();
         $this->softSkillRepository = new ProviderSoftSkillRepository();
         $this->hardSkillRepository = new ProviderHardSkillRepository();
-        $this->jobRepository = new ProviderJobRepository();
+
         $this->languageRepository = new ProviderLanguageRepository();
         $this->educationRepository = new EducationRepository();
         $this->experienceRepository = new ExperienceRepository();
@@ -49,25 +50,38 @@ class ProviderController
     // GET /providers
     public function getAllProviders(): array
     {
-        return $this->providerRepository->findAll();
+        $providers = $this->providerRepository->findAll();
+        return array_map(function (Provider $provider) {
+            return $provider->toArray();
+        }, $providers);
     }
 
     // GET /providers/{id}
-    public function getProviderById(int $id): ?Provider
+    public function getProviderById(int $id): ?array
     {
-        return $this->providerRepository->findById($id);
+        $result = $this->providerRepository->findByIdWithSocialLinks($id);
+        if ($result === null) {
+            return null;
+        }
+        return [
+            'provider' => $result['provider']->toArray(),
+            'socialLinks' => $result['socialLinks']
+        ];
     }
 
-    // GET /providers/email/{email}
-    public function getProviderByEmail(string $email): ?Provider
-    {
-        return $this->providerRepository->findByEmail($email);
-    }
+
 
     // GET /providers/slug/{slug}
-    public function getProviderBySlug(string $slug): ?Provider
+    public function getProviderBySlug(string $slug): ?array
     {
-        return $this->providerRepository->findBySlug($slug);
+        $result = $this->providerRepository->findBySlugWithSocialLinks($slug);
+        if ($result === null) {
+            return null;
+        }
+        return [
+            'provider' => $result['provider']->toArray(),
+            'socialLinks' => $result['socialLinks']
+        ];
     }
 
     /**
@@ -76,6 +90,15 @@ class ProviderController
     public function uploadProfilePicture(int $providerId, array $file): array
     {
         try {
+            // Security: only owner provider can update own profile picture
+            $currentUserId = AuthMiddleware::getCurrentUserId();
+            $currentUserType = AuthMiddleware::getCurrentUserType();
+            if ($currentUserType !== 'provider' || $providerId !== $currentUserId) {
+                return [
+                    'success' => false,
+                    'message' => 'Accès interdit'
+                ];
+            }
             // Vérifier que le provider existe
             $provider = $this->providerRepository->findById($providerId);
             if (!$provider) {
@@ -148,6 +171,15 @@ class ProviderController
     {
         $provider = $this->providerRepository->findById($id);
         if (!$provider) {
+            return null;
+        }
+
+        // Security: only owner provider can update own profile
+        $currentUserId = AuthMiddleware::getCurrentUserId();
+        $currentUserType = AuthMiddleware::getCurrentUserType();
+        if ($currentUserType !== 'provider' || $provider->getId() !== $currentUserId) {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'message' => 'Accès interdit']);
             return null;
         }
 
@@ -237,33 +269,7 @@ class ProviderController
         }
     }
 
-    // GET /providers/{id}/jobs
-    public function getProviderJobs(int $providerId): array
-    {
-        return $this->jobRepository->findByProviderId($providerId);
-    }
 
-    // POST /providers/{id}/jobs
-    public function addJobToProvider(int $providerId, int $jobId): bool
-    {
-        try {
-            $this->jobRepository->addJobToProvider($providerId, $jobId);
-            return true;
-        } catch (\Exception $e) {
-            return false;
-        }
-    }
-
-    // DELETE /providers/{id}/jobs/{jobId}
-    public function removeJobFromProvider(int $providerId, int $jobId): bool
-    {
-        try {
-            $this->jobRepository->removeJobFromProvider($providerId, $jobId);
-            return true;
-        } catch (\Exception $e) {
-            return false;
-        }
-    }
 
     // GET /providers/{id}/languages
     public function getProviderLanguages(int $providerId): array
@@ -293,16 +299,80 @@ class ProviderController
         }
     }
 
-    // GET /providers/{id}/education
-    public function getProviderEducation(int $providerId): array
+
+
+    // GET /providers/country/{countryId}
+    public function getProvidersByCountry(int $countryId): array
     {
-        return $this->educationRepository->findByProviderId($providerId);
+        return $this->providerRepository->findByCountry($countryId);
     }
 
-    // GET /providers/{id}/experience
-    public function getProviderExperience(int $providerId): array
+    // GET /providers/job/{jobId}
+    public function getProvidersByJob(int $jobId): array
     {
-        return $this->experienceRepository->findByProviderId($providerId);
+        return $this->providerRepository->findByJob($jobId);
+    }
+
+    // GET /providers/hard-skill/{skillName}
+    public function getProvidersByHardSkill(string $skillName): array
+    {
+        return $this->providerRepository->findByHardSkill($skillName);
+    }
+
+    // GET /providers/soft-skill/{skillName}
+    public function getProvidersBySoftSkill(string $skillName): array
+    {
+        return $this->providerRepository->findBySoftSkill($skillName);
+    }
+
+    // GET /providers/language/{languageName}
+    public function getProvidersByLanguage(string $languageName): array
+    {
+        return $this->providerRepository->findByLanguage($languageName);
+    }
+
+    // GET /providers/search/{query}
+    public function searchProviders(string $query): array
+    {
+        return $this->providerRepository->search($query);
+    }
+
+    // GET /providers/{providerSlug}/reviews
+    public function getProviderReviews(string $providerSlug): array
+    {
+        $reviewRepository = new \Soosuuke\IaPlatform\Repository\ReviewRepository();
+        return $reviewRepository->findAllByProviderSlug($providerSlug);
+    }
+
+    // GET /providers/{providerSlug}/availability
+    public function getProviderAvailability(string $providerSlug): array
+    {
+        $availabilityRepository = new \Soosuuke\IaPlatform\Repository\AvailabilitySlotRepository();
+        return $availabilityRepository->findAllByProviderSlug($providerSlug);
+    }
+
+    // GET /providers/slug/{providerSlug}/experiences
+    public function getProviderExperiences(string $providerSlug): array
+    {
+        $provider = $this->providerRepository->findBySlug($providerSlug);
+        if (!$provider) {
+            return [];
+        }
+        $experienceRepository = new \Soosuuke\IaPlatform\Repository\ExperienceRepository();
+        $exps = $experienceRepository->findByProviderId($provider->getId());
+        return array_map(fn($e) => method_exists($e, 'toArray') ? $e->toArray() : $e, $exps);
+    }
+
+    // GET /providers/slug/{providerSlug}/educations
+    public function getProviderEducations(string $providerSlug): array
+    {
+        $provider = $this->providerRepository->findBySlug($providerSlug);
+        if (!$provider) {
+            return [];
+        }
+        $educationRepository = new \Soosuuke\IaPlatform\Repository\EducationRepository();
+        $eds = $educationRepository->findByProviderId($provider->getId());
+        return array_map(fn($e) => method_exists($e, 'toArray') ? $e->toArray() : $e, $eds);
     }
 
     // GET /countries

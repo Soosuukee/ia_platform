@@ -9,6 +9,7 @@ use Soosuuke\IaPlatform\Repository\ProviderRepository;
 use Soosuuke\IaPlatform\Entity\Service;
 use Soosuuke\IaPlatform\Service\ServiceSlugificationService;
 use Soosuuke\IaPlatform\Service\FileUploadService;
+use Soosuuke\IaPlatform\Config\AuthMiddleware;
 
 class ServiceController
 {
@@ -28,37 +29,54 @@ class ServiceController
     // GET /services
     public function getAllServices(): array
     {
-        return $this->serviceRepository->findAll();
+        $services = $this->serviceRepository->findAll();
+        return array_map(function (Service $service) {
+            return $service->toArray();
+        }, $services);
     }
 
     // GET /services/{id}
-    public function getServiceById(int $id): ?Service
+    public function getServiceById(int $id): ?array
     {
-        return $this->serviceRepository->findById($id);
+        return $this->serviceRepository->getServiceWithContent($id);
     }
 
     // GET /services/slug/{slug}
-    public function getServiceBySlug(string $slug): ?Service
+    public function getServiceBySlug(string $slug): ?array
     {
-        return $this->serviceRepository->findBySlug($slug);
+        $service = $this->serviceRepository->findBySlug($slug);
+        if (!$service) {
+            return null;
+        }
+        return $this->serviceRepository->getServiceWithContent($service->getId());
     }
 
-    // GET /services/provider/{providerId}
-    public function getServicesByProviderId(int $providerId): array
+    // GET /services/provider/{providerSlug}
+    public function getServicesByProviderSlug(string $providerSlug): array
     {
-        return $this->serviceRepository->findByProviderId($providerId);
+        $services = $this->serviceRepository->findByProviderSlug($providerSlug);
+
+        // Retourner les services avec leur contenu complet
+        $servicesWithContent = [];
+        foreach ($services as $service) {
+            $servicesWithContent[] = $this->serviceRepository->getServiceWithContent($service->getId());
+        }
+
+        return $servicesWithContent;
     }
 
     // GET /services/active
     public function getActiveServices(): array
     {
-        return $this->serviceRepository->findActive();
+        $services = $this->serviceRepository->findActive();
+        return array_map(fn(Service $s) => $s->toArray(), $services);
     }
 
     // GET /services/featured
     public function getFeaturedServices(): array
     {
-        return $this->serviceRepository->findFeatured();
+        $services = $this->serviceRepository->findFeatured();
+        return array_map(fn(Service $s) => $s->toArray(), $services);
     }
 
     // POST /services
@@ -96,6 +114,15 @@ class ServiceController
             return null;
         }
 
+        // Security: only owner provider can update
+        $currentUserId = AuthMiddleware::getCurrentUserId();
+        $currentUserType = AuthMiddleware::getCurrentUserType();
+        if ($currentUserType !== 'provider' || $service->getProviderId() !== $currentUserId) {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'message' => 'Accès interdit']);
+            return null;
+        }
+
         // Mise à jour des propriétés
         $service = new Service(
             $data['providerId'] ?? $service->getProviderId(),
@@ -105,7 +132,6 @@ class ServiceController
             $data['isFeatured'] ?? $service->isFeatured(),
             $data['cover'] ?? $service->getCover(),
             $data['summary'] ?? $service->getSummary(),
-            $data['tag'] ?? $service->getTag(),
             $data['slug'] ?? $service->getSlug()
         );
 
@@ -122,6 +148,57 @@ class ServiceController
         }
 
         $this->serviceRepository->delete($id);
+        return true;
+    }
+
+    // PUT/PATCH /services/slug/{slug}
+    public function updateServiceBySlug(string $slug, array $data): ?Service
+    {
+        $service = $this->serviceRepository->findBySlug($slug);
+        if (!$service) {
+            return null;
+        }
+
+        $currentUserId = AuthMiddleware::getCurrentUserId();
+        $currentUserType = AuthMiddleware::getCurrentUserType();
+        if ($currentUserType !== 'provider' || $service->getProviderId() !== $currentUserId) {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'message' => 'Accès interdit']);
+            return null;
+        }
+
+        $service = new Service(
+            $data['providerId'] ?? $service->getProviderId(),
+            $data['maxPrice'] ?? $service->getMaxPrice(),
+            $data['minPrice'] ?? $service->getMinPrice(),
+            $data['isActive'] ?? $service->isActive(),
+            $data['isFeatured'] ?? $service->isFeatured(),
+            $data['cover'] ?? $service->getCover(),
+            $data['summary'] ?? $service->getSummary(),
+            $data['slug'] ?? $service->getSlug()
+        );
+
+        $this->serviceRepository->update($service);
+        return $service;
+    }
+
+    // DELETE /services/slug/{slug}
+    public function deleteServiceBySlug(string $slug): bool
+    {
+        $service = $this->serviceRepository->findBySlug($slug);
+        if (!$service) {
+            return false;
+        }
+
+        $currentUserId = AuthMiddleware::getCurrentUserId();
+        $currentUserType = AuthMiddleware::getCurrentUserType();
+        if ($currentUserType !== 'provider' || $service->getProviderId() !== $currentUserId) {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'message' => 'Accès interdit']);
+            return false;
+        }
+
+        $this->serviceRepository->delete($service->getId());
         return true;
     }
 
@@ -152,8 +229,46 @@ class ServiceController
         return $service;
     }
 
+    // PATCH /services/{id}/with-content
+    public function patchServiceWithContent(int $id, array $data): ?Service
+    {
+        $service = $this->serviceRepository->findById($id);
+        if (!$service) {
+            return null;
+        }
+
+        // Security: only owner provider can patch
+        $currentUserId = AuthMiddleware::getCurrentUserId();
+        $currentUserType = AuthMiddleware::getCurrentUserType();
+        if ($currentUserType !== 'provider' || $service->getProviderId() !== $currentUserId) {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'message' => 'Accès interdit']);
+            return null;
+        }
+
+        // Mettre à jour éventuellement quelques métadonnées du service si fournies
+        if (isset($data['summary'])) {
+            $service->setSummary($data['summary']);
+        }
+
+        if (isset($data['isActive'])) {
+            $service->setIsActive((bool)$data['isActive']);
+        }
+        if (isset($data['isFeatured'])) {
+            $service->setIsFeatured((bool)$data['isFeatured']);
+        }
+        if (isset($data['cover'])) {
+            $service->setCover($data['cover']);
+        }
+
+        $sections = $data['sections'] ?? [];
+        $this->serviceRepository->saveServiceWithContent($service, $sections);
+
+        return $service;
+    }
+
     // GET /providers/{providerSlug}/services/{serviceSlug}
-    public function getServiceByProviderAndSlug(string $providerSlug, string $serviceSlug): ?Service
+    public function getServiceByProviderAndSlug(string $providerSlug, string $serviceSlug): ?array
     {
         // D'abord trouver le provider par son slug
         $provider = $this->providerRepository->findBySlug($providerSlug);
@@ -167,8 +282,10 @@ class ServiceController
             return null;
         }
 
-        return $service;
+        return $this->serviceRepository->getServiceWithContent($service->getId());
     }
+
+
 
     // POST /services/{id}/cover
     public function uploadCover(int $serviceId, array $file): array
@@ -179,6 +296,16 @@ class ServiceController
                 return [
                     'success' => false,
                     'message' => 'Service non trouvé'
+                ];
+            }
+
+            // Security: only owner provider can update cover
+            $currentUserId = AuthMiddleware::getCurrentUserId();
+            $currentUserType = AuthMiddleware::getCurrentUserType();
+            if ($currentUserType !== 'provider' || $service->getProviderId() !== $currentUserId) {
+                return [
+                    'success' => false,
+                    'message' => 'Accès interdit'
                 ];
             }
 
@@ -235,5 +362,22 @@ class ServiceController
                 'message' => 'Erreur lors de l\'upload: ' . $e->getMessage()
             ];
         }
+    }
+
+    public function getServicesByTag(int $tagId): array
+    {
+        $services = $this->serviceRepository->findByTagId($tagId);
+        return array_map(fn(Service $service) => [
+            'id' => $service->getId(),
+            'providerId' => $service->getProviderId(),
+            'summary' => $service->getSummary(),
+            'maxPrice' => $service->getMaxPrice(),
+            'minPrice' => $service->getMinPrice(),
+            'isActive' => $service->isActive(),
+            'isFeatured' => $service->isFeatured(),
+            'cover' => $service->getCover(),
+            'slug' => $service->getSlug(),
+            'createdAt' => $service->getCreatedAt()->format('Y-m-d H:i:s')
+        ], $services);
     }
 }

@@ -31,6 +31,23 @@ class AvailabilitySlotRepository
         return $slots;
     }
 
+    public function findAllByProviderSlug(string $providerSlug): array
+    {
+        $stmt = $this->pdo->prepare('
+            SELECT avs.* FROM availability_slot avs
+            INNER JOIN provider p ON avs.provider_id = p.id
+            WHERE p.slug = ?
+        ');
+        $stmt->execute([$providerSlug]);
+
+        $slots = [];
+        while ($row = $stmt->fetch()) {
+            $slots[] = $this->mapToSlot($row);
+        }
+
+        return $slots;
+    }
+
     public function findAvailableByProviderId(int $providerId): array
     {
         $stmt = $this->pdo->prepare('

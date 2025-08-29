@@ -17,6 +17,7 @@ class Provider implements AccountHolder
     private ?string $profilePicture = null;
     private DateTimeImmutable $joinedAt;
     private string $slug;
+    private int $jobId;
     private int $countryId;
     private string $city;
     private ?string $state = null;
@@ -28,6 +29,7 @@ class Provider implements AccountHolder
         string $lastName,
         string $email,
         string $password,
+        int $jobId,
         int $countryId,
         string $city,
         ?string $profilePicture = null,
@@ -40,6 +42,7 @@ class Provider implements AccountHolder
         $this->lastName = trim($lastName);
         $this->email = trim($email);
         $this->password = $password;
+        $this->jobId = $jobId;
         $this->countryId = $countryId;
         $this->city = trim($city);
         $this->state = $state ? trim($state) : null;
@@ -100,6 +103,11 @@ class Provider implements AccountHolder
         $this->slug = $slug;
     }
 
+    public function getJobId(): int
+    {
+        return $this->jobId;
+    }
+
     public function getCountryId(): int
     {
         return $this->countryId;
@@ -141,5 +149,26 @@ class Provider implements AccountHolder
     public function getCreatedAt(): DateTimeImmutable
     {
         return $this->joinedAt;
+    }
+
+    // Méthode pour l'API
+    public function toArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'firstName' => $this->firstName,
+            'lastName' => $this->lastName,
+            'email' => $this->email,
+            'profilePicture' => $this->profilePicture,
+            'joinedAt' => $this->joinedAt->format('Y-m-d\TH:i:s.v\Z'),
+            'slug' => $this->slug,
+            'jobId' => $this->jobId,
+            'countryId' => $this->countryId,
+            'city' => $this->city,
+            'state' => $this->state,
+            'postalCode' => $this->postalCode,
+            'address' => $this->address,
+            'role' => $this->getRole()
+        ];
     }
 }

@@ -9,6 +9,7 @@ use Soosuuke\IaPlatform\Repository\CountryRepository;
 use Soosuuke\IaPlatform\Entity\Client;
 use Soosuuke\IaPlatform\Service\ClientSlugificationService;
 use Soosuuke\IaPlatform\Service\FileUploadService;
+use Soosuuke\IaPlatform\Config\AuthMiddleware;
 
 class ClientController
 {
@@ -87,6 +88,15 @@ class ClientController
             return null;
         }
 
+        // Security: only owner client can update own profile
+        $currentUserId = AuthMiddleware::getCurrentUserId();
+        $currentUserType = AuthMiddleware::getCurrentUserType();
+        if ($currentUserType !== 'client' || $client->getId() !== $currentUserId) {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'message' => 'Accès interdit']);
+            return null;
+        }
+
         // Mise à jour des propriétés
         $client = new Client(
             $data['firstName'] ?? $client->getFirstName(),
@@ -127,6 +137,15 @@ class ClientController
     public function uploadProfilePicture(int $clientId, array $file): array
     {
         try {
+            // Security: only owner client can update own profile picture
+            $currentUserId = AuthMiddleware::getCurrentUserId();
+            $currentUserType = AuthMiddleware::getCurrentUserType();
+            if ($currentUserType !== 'client' || $clientId !== $currentUserId) {
+                return [
+                    'success' => false,
+                    'message' => 'Accès interdit'
+                ];
+            }
             $client = $this->clientRepository->findById($clientId);
             if (!$client) {
                 return [

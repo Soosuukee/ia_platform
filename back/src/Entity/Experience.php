@@ -24,20 +24,20 @@ class Experience
         string $title,
         string $companyName,
         string $firstTask,
-        ?string $secondTask = null,
-        ?string $thirdTask = null,
         DateTimeImmutable $startedAt,
         ?DateTimeImmutable $endedAt = null,
+        ?string $secondTask = null,
+        ?string $thirdTask = null,
         ?string $companyLogo = null
     ) {
         $this->providerId = $providerId;
         $this->title = trim($title);
         $this->companyName = trim($companyName);
         $this->firstTask = trim($firstTask);
-        $this->secondTask = $secondTask ? trim($secondTask) : null;
-        $this->thirdTask = $thirdTask ? trim($thirdTask) : null;
         $this->startedAt = $startedAt;
         $this->endedAt = $endedAt;
+        $this->secondTask = $secondTask ? trim($secondTask) : null;
+        $this->thirdTask = $thirdTask ? trim($thirdTask) : null;
         $this->companyLogo = $companyLogo;
     }
 
@@ -94,5 +94,21 @@ class Experience
     public function setCompanyLogo(?string $companyLogo): void
     {
         $this->companyLogo = $companyLogo;
+    }
+
+    public function toArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'providerId' => $this->providerId,
+            'title' => $this->title,
+            'companyName' => $this->companyName,
+            'firstTask' => $this->firstTask,
+            'secondTask' => $this->secondTask,
+            'thirdTask' => $this->thirdTask,
+            'startedAt' => $this->startedAt->format('Y-m-d'),
+            'endedAt' => $this->endedAt?->format('Y-m-d'),
+            'companyLogo' => $this->companyLogo,
+        ];
     }
 }

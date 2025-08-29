@@ -8,7 +8,7 @@ use DateTimeImmutable;
 
 class Service
 {
-    private int $id;
+    private int $id = 0;
     private int $providerId;
     private DateTimeImmutable $createdAt;
     private ?float $maxPrice;
@@ -16,30 +16,30 @@ class Service
     private bool $isActive;
     private bool $isFeatured;
     private ?string $cover = null;
+    private string $title;
     private string $summary;
-    private string $tag;
     private string $slug;
 
     public function __construct(
         int $providerId,
-        string $summary,
-        string $tag,
+        string $title,
         ?float $maxPrice = null,
         ?float $minPrice = null,
         bool $isActive = true,
         bool $isFeatured = false,
         ?string $cover = null,
+        ?string $summary = null,
         ?string $slug = null
     ) {
         $this->providerId = $providerId;
+        $this->title = trim($title);
         $this->createdAt = new DateTimeImmutable();
         $this->maxPrice = $maxPrice;
         $this->minPrice = $minPrice;
         $this->isActive = $isActive;
         $this->isFeatured = $isFeatured;
         $this->cover = $cover;
-        $this->summary = trim($summary);
-        $this->tag = trim($tag);
+        $this->summary = trim($summary ?? '');
         $this->slug = $slug ?? '';
     }
 
@@ -78,6 +78,16 @@ class Service
         return $this->isFeatured;
     }
 
+    public function setIsActive(bool $isActive): void
+    {
+        $this->isActive = $isActive;
+    }
+
+    public function setIsFeatured(bool $isFeatured): void
+    {
+        $this->isFeatured = $isFeatured;
+    }
+
     public function getCover(): ?string
     {
         return $this->cover;
@@ -86,6 +96,16 @@ class Service
     public function setCover(?string $cover): void
     {
         $this->cover = $cover;
+    }
+
+    public function getTitle(): string
+    {
+        return $this->title;
+    }
+
+    public function setTitle(string $title): void
+    {
+        $this->title = trim($title);
     }
 
     public function getSummary(): string
@@ -98,16 +118,6 @@ class Service
         $this->summary = trim($summary);
     }
 
-    public function getTag(): string
-    {
-        return $this->tag;
-    }
-
-    public function setTag(string $tag): void
-    {
-        $this->tag = trim($tag);
-    }
-
     public function getSlug(): string
     {
         return $this->slug;
@@ -116,5 +126,22 @@ class Service
     public function setSlug(string $slug): void
     {
         $this->slug = $slug;
+    }
+
+    public function toArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'providerId' => $this->providerId,
+            'createdAt' => $this->createdAt->format('Y-m-d\TH:i:s'),
+            'maxPrice' => $this->maxPrice,
+            'minPrice' => $this->minPrice,
+            'isActive' => $this->isActive,
+            'isFeatured' => $this->isFeatured,
+            'cover' => $this->cover,
+            'title' => $this->title,
+            'summary' => $this->summary,
+            'slug' => $this->slug,
+        ];
     }
 }
